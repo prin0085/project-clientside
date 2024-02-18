@@ -1,0 +1,102 @@
+.defalut-btn {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #646cff;
+    color: white;
+    cursor: pointer;
+    transition: border-color 0.25s;
+}
+
+.defalut-btn:hover {
+    border-color: #ffffff;
+    color: white;
+}
+
+.defalut-btn:focus,
+.defalut-btn:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+}
+
+.tranparent-btn {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: transparent;
+    color: white;
+    cursor: pointer;
+    transition: border-color 0.25s;
+}
+
+.nav-logo {
+    width: 3rem;
+    height: auto;
+    background-color: white;
+    padding: 0.5rem;
+    border-radius: 5rem;
+}
+
+@media (prefers-color-scheme: light) {
+    .defalut-btn {
+        background-color: #f9f9f9;
+    }
+
+    .defalut-btn:hover {
+        border-color: red;
+    }
+}
+
+.tab-bg {
+    background-color: #1a1a1a;
+}
+
+.tab {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #e4e4e4;
+    color: black;
+    cursor: pointer;
+    transition: border-color 0.25s;
+    width: 150px;
+}
+
+.tab:hover {
+    filter: brightness(1.1);
+}
+
+.w-100 {
+    width: 100px;
+}
+
+.icon-button {
+    padding-left: 4px;
+    padding-right: 4px;
+    border-radius: 5px;
+}
+
+.icon-button:hover {
+    background-color: lightgray;
+    transition: background-color 0.3s ease;
+}
+
+.text-black {
+    color: black;
+}
+
+.pull-left {
+    float: left;
+}
+
+.pull-right {
+    float: right;
+}
