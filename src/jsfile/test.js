@@ -14,6 +14,13 @@ function duplicateCodeExample() {
     console.log('This is duplicated in another function');
 }
 
+function for_loop() {
+    var arr = [0, 5, 63, 5, 7, 8];
+    for (var i = 0; i < arr.length; i++) {
+        console.log(arr[i]);
+    }
+}
+
 function anotherFunctionWithDuplicateCode() {
     console.log('This is duplicated in another function');
 }

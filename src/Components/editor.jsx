@@ -105,13 +105,14 @@ const EditForm = () => {
     // }
 
     return (
-        <div className="App">
+        <div className="overflow-hidden">
             <button onClick={() => openSelectFileDialog()}>
                 อัปโหลด
             </button>
+            <input type="file" ref={inputRef} className="hidden" onChange={handleFileChange} />
+
             <button onClick={handleAnalysis}>Analyze File</button>
-            <input type="file" ref={inputRef} className='hidden' onChange={handleFileChange} />
-            <div className='pt-5' id='divBtn'>
+            <div className="pt-5" id="divBtn">
                 <button onClick={() => setFileName("newfile.js")}>
                     newfile.js
                 </button>
@@ -120,8 +121,9 @@ const EditForm = () => {
             {/* <button onClick={() => getEditorValue()}>
                 Get Editor Value
             </button> */}
+
             <Editor
-                height="100vh"
+                height="70vh"
                 width="100%"
                 theme="vs-dark"
                 onMount={handleEditorDidMount}

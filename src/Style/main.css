@@ -100,3 +100,15 @@
 .pull-right {
     float: right;
 }
+
+.bg-dark-purple {
+    background-color: #060743;
+}
+
+.bg-light-white {
+    background-color: #ffffff6c;
+}
+
+.sidenav-custom a:hover {
+    background-color: #ffffff6c;
+}
