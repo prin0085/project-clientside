@@ -8,7 +8,7 @@ const SideNav = () => {
     const Menus = [
         { title: "Dashboard", src: "Chart_fill", to: "/" },
         { title: "Analytics", src: "Search", to: "/analize", gap: true },
-        { title: "Summary ", src: "Chart", to: "/file" },
+        { title: "Summary ", src: "Chart", to: "/summary" },
         { title: "Setting", src: "Setting", to: "/setting", gap: true },
     ];
 

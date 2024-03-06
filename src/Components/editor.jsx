@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Editor from "@monaco-editor/react";
 import axios from 'axios';
+import { dataContext } from './../Context/context';
 //import * as ReactDOM from 'react-dom';
 
 const defaultfiles = {
@@ -12,6 +13,7 @@ const defaultfiles = {
 }
 
 const EditForm = () => {
+    let [analizeData, setAnalyzeData] = useContext(dataContext);
     const [fileName, setFileName] = useState('newfile.js');
     const [files, setFile] = useState(null);
     const [dataAnalyze, setDataAnalyze] = useState(null);
@@ -22,7 +24,7 @@ const EditForm = () => {
 
     useEffect(() => {
         if (dataAnalyze) {
-            console.log(dataAnalyze.data.messages);
+            setAnalyzeData(dataAnalyze.data.messages);
         }
     }, [dataAnalyze]);
 
