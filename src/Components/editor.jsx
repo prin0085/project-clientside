@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import Editor from "@monaco-editor/react";
 import axios from 'axios';
-import { dataContext } from './../Context/context';
-//import * as ReactDOM from 'react-dom';
+import FileTab from './fileTab';
+import { dataContext, Filelist, openedFile } from './../Context/context';
 
 const defaultfiles = {
     "newfile.js": {
@@ -14,17 +14,19 @@ const defaultfiles = {
 
 const EditForm = () => {
     let [analizeData, setAnalyzeData] = useContext(dataContext);
-    const [fileName, setFileName] = useState('newfile.js');
-    const [files, setFile] = useState(null);
+    let [fileName, setFileName] = useContext(openedFile);
+    const [files, setFile] = useContext(Filelist);
     const [dataAnalyze, setDataAnalyze] = useState(null);
-    const editorRef = React.useRef(null);
-    const inputRef = React.useRef(null);
+
+    const editorRef = useRef(null);
+    const inputRef = useRef(null);
+
     const file = defaultfiles[fileName];
     const apiUrl = 'http://localhost:3001/upload';
 
     useEffect(() => {
         if (dataAnalyze) {
-            setAnalyzeData(dataAnalyze.data.messages);
+            setAnalyzeData(dataAnalyze.data);
         }
     }, [dataAnalyze]);
 
@@ -35,62 +37,49 @@ const EditForm = () => {
         }
 
         const formData = new FormData();
-        formData.append('file', files);
+        for (const file of files) {
+            createFileTab(file);
+            formData.append('files', file);
+        }
 
         await axios
             .post(apiUrl, formData)
-            .then((res) => setDataAnalyze(res))
+            .then((res) => {
+                setDataAnalyze(res);
+            })
             .catch(err => {
                 console.error(err);
             });
     };
 
     const handleFileChange = (event) => {
+        for (const file of event.target.files) {
+            const fileExists = files.some(f => f.name === file.name);
+            if (!fileExists) {
+                createFileTab(file);
+                setFile(prevFileData => [...prevFileData, file]);
+            }
+        }
+
+    };
+
+    const createFileTab = (f) => {
         let fr = new FileReader();
-        const divBtn = document.getElementById('divBtn');
+        const inpFile = f;
+        //const id = generateFiveDigitID();
 
-        const btnDiv = document.createElement('div');
-        const tabnameDiv = document.createElement('div');
-        const tabnameSpan = document.createElement('span');
-        const closetabDiv = document.createElement('div');
-
-        const inpFile = event.target.files[0];
-
-        btnDiv.className = 'inline-flex tab';
-        tabnameDiv.className = 'flex items-center';
-        tabnameSpan.className = 'font-bold w-100 truncate overflow-hidden';
-        tabnameSpan.innerHTML = inpFile.name;
-        tabnameDiv.append(tabnameSpan);
-
-        closetabDiv.className = 'icon-button'
-        closetabDiv.innerHTML = 'X';
-
-        tabnameDiv.onclick = () => {
-            setFileName(inpFile.name)
-        }
-
-        closetabDiv.onclick = () => {
-            setFileName('newfile.js')
-            inputRef.current.value = '';
-            btnDiv.remove();
-            delete defaultfiles[inpFile.name];
-        }
-
+        //intitail data for upload file
         defaultfiles[inpFile.name] = {
             name: inpFile.name,
             language: "javascript",
             value: ""
         };
 
+        //set value (data in file) to defaultfiles (array of file)
         fr.onload = function () {
-            const a = defaultfiles[inpFile.name];
-            a.value = fr.result;
-            btnDiv.append(tabnameDiv);
-            btnDiv.append(closetabDiv);
-            divBtn.append(btnDiv);
+            defaultfiles[inpFile.name].value = fr.result; //<-- set data
         }
 
-        setFile(inpFile);
         fr.readAsText(inpFile);
     };
 
@@ -108,31 +97,39 @@ const EditForm = () => {
 
     return (
         <div className="overflow-hidden">
-            <button onClick={() => openSelectFileDialog()}>
-                อัปโหลด
-            </button>
-            <input type="file" ref={inputRef} className="hidden" onChange={handleFileChange} />
+            <div className="grid grid-cols-4 gap-4">
+                <div className="col-span-3">
+                    <Editor
+                        height="70vh"
+                        theme="vs-dark"
+                        onMount={handleEditorDidMount}
+                        path={file.name}
+                        defaultLanguage={file.language}
+                        defaultValue={file.value}
+                        autosize={true}
+                    />
+                </div>
+                <div>
+                    <button onClick={() => openSelectFileDialog()}>
+                        อัปโหลด
+                    </button>
+                    <input type="file" ref={inputRef} className="hidden" multiple onChange={handleFileChange} />
 
-            <button onClick={handleAnalysis}>Analyze File</button>
-            <div className="pt-5" id="divBtn">
-                <button onClick={() => setFileName("newfile.js")}>
-                    newfile.js
-                </button>
-            </div>
+                    <button onClick={handleAnalysis}>Analyze File</button>
 
-            {/* <button onClick={() => getEditorValue()}>
+
+                    <div className="pt-5">
+                        <FileTab />
+                    </div>
+                    {/* <button onClick={() => getEditorValue()}>
                 Get Editor Value
             </button> */}
+                </div>
+            </div>
 
-            <Editor
-                height="70vh"
-                width="100%"
-                theme="vs-dark"
-                onMount={handleEditorDidMount}
-                path={file.name}
-                defaultLanguage={file.language}
-                defaultValue={file.value}
-            />
+            {/* <button onClick={() => setFileName("newfile.js")}>
+                        newfile.js
+                    </button> */}
         </div>
     )
 }

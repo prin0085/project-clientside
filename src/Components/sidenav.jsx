@@ -28,7 +28,7 @@ const SideNav = () => {
                             className={`cursor-pointer duration-500 ${open && "rotate-[360deg]"
                                 }`}
                         />
-                        <h1 className={`text-white origin-left font-medium text-xl duration-200 ${!open && "scale-0"}`}>
+                        <h1 className={`sm:block hidden text-white origin-left font-medium text-xl duration-200 ${!open && "scale-0"}`}>
                             Code Analyzer
                         </h1>
                     </div>
@@ -36,7 +36,8 @@ const SideNav = () => {
                         {
                             Menus.map((Menu) => (
                                 <NavLink key={Menu.title} to={Menu.to}
-                                    className={({ isActive }) => `flex rounded-md p-2 cursor-pointer text-gray-300 text-sm items-center gap-x-4
+                                    className={({ isActive }) =>
+                                        `flex rounded-md p-2 cursor-pointer text-gray-300 text-sm items-center gap-x-4
               ${Menu.gap ? "mt-9" : "mt-2"} ${isActive ? "bg-light-white" : ""}`}>
                                     <img alt={Menu.title} src={`./src/assets/${Menu.src}.png`} />
                                     <span className={`${!open && "hidden"} origin-left duration-200`}>
@@ -47,7 +48,7 @@ const SideNav = () => {
                         }
                     </ul>
                 </div>
-                <div className="h-screen flex-1 p-7">
+                <div className="h-screen flex-1 py-7 p-3">
                     <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
                         <Router />
                     </div>

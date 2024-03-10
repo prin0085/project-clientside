@@ -59,15 +59,21 @@
 .tab {
     border-radius: 8px;
     border: 1px solid transparent;
-    padding: 0.6em 1.2em;
+    padding: 0.2em 1em;
     font-size: 1em;
     font-weight: 500;
     font-family: inherit;
-    background-color: #e4e4e4;
-    color: black;
+    color: white;
+    background-color: #6f6f6f;
     cursor: pointer;
+    margin-bottom: 10px;
     transition: border-color 0.25s;
-    width: 150px;
+    width: 100%;
+}
+
+.tab.active {
+    background-color: #d7d7d7;
+    color: black;
 }
 
 .tab:hover {
@@ -111,4 +117,8 @@
 
 .sidenav-custom a:hover {
     background-color: #ffffff6c;
+}
+
+.h-90 {
+    height: 90vh;
 }
