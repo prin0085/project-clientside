@@ -1,21 +1,15 @@
 import React, { useContext } from "react";
 import { dataContext } from "../Context/context";
+import FileErrorlist from "./filetabComponents/FileErrorlist";
 
 export default function Summary() {
     let [analizeData, setAnalyzeData] = useContext(dataContext);
     const displayDataAnalize = () => {
-        return analizeData.forEach(element => {
-            console.log(element);
-            return element[0].messages.map((item, index) => {
-                console.log(item);
-                return (
-                    <div key={index} className="w-full h-28 mt-2 p-2 border-2 cursor-pointer rounded">
-                        <div className=""><h2>{item.ruleId}</h2></div>
-                        <div>{item.message}</div>
-                    </div>
-                )
-            })
-        });
+        return analizeData.map((row, rowIndex) => (
+            <div key={rowIndex}>
+                {<FileErrorlist data={[row[1].originalname, row[0]]} />}
+            </div>
+        ));
     }
 
     return (
