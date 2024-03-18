@@ -63,3 +63,5 @@ const x = 'This variable has a poorly chosen name';
 
 // Code smell: Commented-out code
 // console.log('This lin
+
+function aadsfa() { ]

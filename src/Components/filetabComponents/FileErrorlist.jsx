@@ -10,7 +10,11 @@ const FileErrorlist = ({ data }) => {
 
     return (
         <>
-            <Button onClick={toggleOpen}>{data[0]}  {open ? <GoChevronUp /> : <GoChevronDown />}</Button>
+            <div onClick={toggleOpen} className="flex justify-between mb-0 cursor-pointer tab">
+                {data[0]}
+                <div className="p-1">
+                    {open ? <GoChevronUp /> : <GoChevronDown />}</div>
+            </div>
             <Collapse open={open}>
                 <div className="p-2">
                     {data[1].messages.map((item, index) =>
