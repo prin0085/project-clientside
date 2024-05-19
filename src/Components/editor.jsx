@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import Editor from "@monaco-editor/react";
 import axios from 'axios';
-import FileTab from './fileTab';
-import { dataContext, Filelist, openedFile } from './../Context/context';
+//import FileTab from './fileTab';
+import { dataContext } from './../Context/context';
 
 const defaultfiles = {
     "newfile.js": {
@@ -13,9 +13,7 @@ const defaultfiles = {
 }
 
 const EditForm = () => {
-    let [analizeData, setAnalyzeData] = useContext(dataContext);
-    let [fileName, setFileName] = useContext(openedFile);
-    const [files, setFile] = useContext(Filelist);
+    const [[analizeData, setAnalyzeData], [files, setFile], [fileName, setFileName]] = useContext(dataContext);
     const [dataAnalyze, setDataAnalyze] = useState(null);
 
     const editorRef = useRef(null);
@@ -30,9 +28,13 @@ const EditForm = () => {
         }
     }, [dataAnalyze]);
 
+    const generateFiveDigitID = () => {
+        return Math.floor(10000 + Math.random() * 90000);
+    }
+
     const handleAnalysis = async () => {
         if (!files) {
-            alert('Please select a file for analysis.');
+            alert('Please upload a file for analysis.');
             return;
         }
 
@@ -60,27 +62,23 @@ const EditForm = () => {
                 setFile(prevFileData => [...prevFileData, file]);
             }
         }
-
     };
 
     const createFileTab = (f) => {
         let fr = new FileReader();
-        const inpFile = f;
-        //const id = generateFiveDigitID();
-
         //intitail data for upload file
-        defaultfiles[inpFile.name] = {
-            name: inpFile.name,
+        defaultfiles[f.name] = {
+            name: f.name,
             language: "javascript",
             value: ""
         };
 
         //set value (data in file) to defaultfiles (array of file)
         fr.onload = function () {
-            defaultfiles[inpFile.name].value = fr.result; //<-- set data
+            defaultfiles[f.name].value = fr.result; //<-- set data
         }
 
-        fr.readAsText(inpFile);
+        fr.readAsText(f);
     };
 
     const openSelectFileDialog = () => {
@@ -91,9 +89,29 @@ const EditForm = () => {
         editorRef.current = editor;
     };
 
-    // function getEditorValue() {
-    //     alert(editorRef.current.getValue());
-    // }
+    const onSavefileTemp = () => {
+        const val = editorRef.current.getValue();
+        const file = defaultfiles[fileName];
+
+        file.value = val;
+
+        const index = files.findIndex(f => f.name === file.name);
+        const newFiles = [...files];
+        newFiles[index] = new File([val], file.name, {
+            type: "text/javascript",
+        });
+        setFile(newFiles);
+    }
+
+    const onChagneFile = (filename) => {
+        const crrval = editorRef.current.getValue();
+        const oldval = defaultfiles[filename].value;
+        if (crrval != oldval) {
+            onSavefileTemp();
+        }
+
+        setFileName(filename)
+    }
 
     return (
         <div className="overflow-hidden">
@@ -117,13 +135,18 @@ const EditForm = () => {
 
                     <button onClick={handleAnalysis}>Analyze File</button>
 
+                    <button onClick={onSavefileTemp}>
+                        Save
+                    </button>
 
                     <div className="pt-5">
-                        <FileTab />
+                        {files.map((file) => (
+                            <div className={`tab ${fileName == file.name ? 'active' : ''} cursor-pointer`}
+                                onClick={() => onChagneFile(file.name)} key={generateFiveDigitID()}>
+                                {file.name}
+                            </div>
+                        ))}
                     </div>
-                    {/* <button onClick={() => getEditorValue()}>
-                Get Editor Value
-            </button> */}
                 </div>
             </div>
 

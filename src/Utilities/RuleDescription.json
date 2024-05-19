@@ -1,0 +1,14 @@
+[
+    {
+        "ruleId": "max-params",
+        "title": "Parameter มากเกินไป",
+        "description": "บังคับให้มีจำนวนสูงสุด (3) ของ Parameter ในการประกาศฟังก์ชัน",
+        "message": "ฟังก์ชันที่มีจำนวน Parameter มากอาจทำให้ยากต่อการอ่านและเขียน เนื่องจากผู้เขียนต้องจำข้อมูลต่าง ๆ ของ Parameter เช่น ประเภทของ Parameter การเรียงลำดับ ดังนั้นการจำกัดจำนวน Parameter อาจจะช่วยให้สะดวกมากยิ่งขึ้น"
+    },
+    {
+        "ruleId": "rule2",
+        "title": "Rule 2",
+        "description": "This is the description for Rule 2",
+        "message": "Message related to Rule 2"
+    }
+]
