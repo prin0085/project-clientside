@@ -6,9 +6,27 @@
         "message": "ฟังก์ชันที่มีจำนวน Parameter มากอาจทำให้ยากต่อการอ่านและเขียน เนื่องจากผู้เขียนต้องจำข้อมูลต่าง ๆ ของ Parameter เช่น ประเภทของ Parameter การเรียงลำดับ ดังนั้นการจำกัดจำนวน Parameter อาจจะช่วยให้สะดวกมากยิ่งขึ้น"
     },
     {
-        "ruleId": "rule2",
-        "title": "Rule 2",
-        "description": "This is the description for Rule 2",
-        "message": "Message related to Rule 2"
+        "ruleId": "array-callback-return",
+        "title": "คำสั่ง Return ใน Callback ไม่ได้กำหนดค่าที่จะ Return",
+        "description": "บังคับการงานใช้คำสั่ง Callback ใน Array methods ต้องมีการ Return ค่ากลับ",
+        "message": "การใช้คำสั่ง Return ใน Callback ของ Methods ที่ใช้กับ Array ต่าง ๆ ต้องมีการ Return ค่ากลับ"
+    },
+    {
+        "ruleId": "constructor-super",
+        "title": "ไม่มี super() ใน child class",
+        "description": "ในการสืบทอด class จะต้องมีการใช้ super() ก่อนการ this และ return",
+        "message": "การสืบทอดจาก derived class จำเป็นต้องมีการเรียกใช้ super() ใน Constructors ของ child class โดย super() จะต้องถูกเรียกก่อนที่จะใช้คำสั่ง this และก่อนที่ Constructors จะส่งคืนค่า การเรียกใช้ super()"
+    },
+    {
+        "ruleId": "for-direction",
+        "title": "เงื่อนไขการนับ Counter ใน for ไม่ถูกต้อง",
+        "description": "บังคับให้เงื่อนไขคำสั่งของ for ในที่ถูกต้อง",
+        "message": "ใน for มีการกำหนดเงื่อนไขการนับ Counter ไม่ถูกต้อง เช่น var i = 0; i > 10; i++ "
+    },
+    {
+        "ruleId": "getter-return",
+        "title": "ไม่มีคำสั่ง return ใน getters",
+        "description": "บังคับให้มีคำสั่ง return ใน getters",
+        "message": "การใช้คำสั่ง get จะต้องมีการ return"
     }
 ]
