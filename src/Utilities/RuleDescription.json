@@ -28,5 +28,29 @@
         "title": "ไม่มีคำสั่ง return ใน getters",
         "description": "บังคับให้มีคำสั่ง return ใน getters",
         "message": "การใช้คำสั่ง get จะต้องมีการ return"
+    },
+    {
+        "ruleId": "no-async-promise-executor",
+        "title": "async function ใช้ไม่ถูกต้อง",
+        "description": "ไม่อนุญาตให้ใช้ async function เป็นตัวดำเนินการของ Promise",
+        "message": "async function ไม่ควร เป็นตัวดำเนินการของ Promise"   
+    },
+    {
+        "ruleId": "no-await-in-loop",
+        "title": "การใช้ await ไม่ถูกต้อง",
+        "description": "ไม่อนุญาตให้ใช้ await ภายใน loop",
+        "message": "await ไม่ควรใช้อยู่ใน loop"
+    },
+    {
+        "ruleId": "no-class-assign",
+        "title": "ห้ามกำหนดค่าใหม่ให้กับ class member",
+        "description": "class ไม่สามารถกำหนดค่าตรงๆได้",
+        "message": "การกำหนดค่า class member ไม่ถูกต้อง"
+    },
+    {
+        "ruleId": "no-compare-neg-zero",
+        "title": "ค่าที่นำไปเทียบไม่ถูกต้อง",
+        "description": "ห้าม ใช้ (-0) ในการนำไปเทียบค่า",
+        "message": "ไม่ควรใช้ (-0) ในการนำไปเทียบค่า"
     }
 ]
