@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Collapse } from "@material-tailwind/react";
 import { GoChevronDown, GoChevronUp } from "react-icons/go";
 import des from '../../Utilities/RuleDescription.json';
+import CodeDisplay from "../codeDisplay/codeDisplay";
 
 const FileErrorlist = ({ data }) => {
     const [open, setOpen] = useState(false);
@@ -16,7 +17,9 @@ const FileErrorlist = ({ data }) => {
                 <div>
                     <div><strong className="text-xl">{desciption.title}</strong></div>
                     <p className="text-slate-400 text-sm">บรรทัด : {activePage.line}</p>
-                    <div className="px-5 pt-5">{desciption.message}</div>
+                    <div className="px-5 pt-5 pb-5">{desciption.message}</div>
+
+                    <CodeDisplay file={data[2]} startLine={activePage.line} endLine={activePage.endLine} />
                 </div>
             )
         }
@@ -27,7 +30,7 @@ const FileErrorlist = ({ data }) => {
 
     return (
         <div className="flex">
-            <div className="w-1/2">
+            <div className="w-1/4">
                 <div className="p-2 overflow-auto h-90">
                     <div onClick={toggleOpen} className="flex justify-between mb-0 cursor-pointer tab">
                         {data[0]}
@@ -49,7 +52,7 @@ const FileErrorlist = ({ data }) => {
                     </Collapse>
                 </div>
             </div>
-            <div className="w-1/2">
+            <div className="w-3/4">
                 <div className="p-5">
                     {activePage && displayActivePage()}
                 </div>

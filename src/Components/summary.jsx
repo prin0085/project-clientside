@@ -9,7 +9,7 @@ export default function Summary() {
         console.log(analizeData)
         return analizeData.map((row, rowIndex) => (
             <div key={rowIndex}>
-                {<FileErrorlist data={[row[1].originalname, row[0]]} />}
+                {<FileErrorlist data={[row[1].originalname, row[0], row[1]]} />}
             </div>
         ));
     }
