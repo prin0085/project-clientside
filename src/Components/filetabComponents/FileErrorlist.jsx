@@ -1,12 +1,16 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Collapse } from "@material-tailwind/react";
 import { GoChevronDown, GoChevronUp } from "react-icons/go";
 import des from '../../Utilities/RuleDescription.json';
 import CodeDisplay from "../codeDisplay/codeDisplay";
+import { dataContext } from '../../Context/context';
+import { ruleDescriptionDisplayer } from './../globalFunction';
 
 const FileErrorlist = ({ data }) => {
+    const [[analizeData, setAnalyzeData], [files, setFile], [fileName, setFileName]] = useContext(dataContext);
     const [open, setOpen] = useState(false);
+    const [content, setContent] = useState("");
     const toggleOpen = () => setOpen((cur) => !cur);
     const [activePage, setActivePage] = useState('');
 
@@ -16,10 +20,10 @@ const FileErrorlist = ({ data }) => {
             return (
                 <div>
                     <div><strong className="text-xl">{desciption.title}</strong></div>
-                    <p className="text-slate-400 text-sm">บรรทัด : {activePage.line}</p>
+                    <p className="text-slate-400 text-sm">บรรทัดที่ : {activePage.line}</p>
                     <div className="px-5 pt-5 pb-5">{desciption.message}</div>
 
-                    <CodeDisplay file={data[2]} startLine={activePage.line} endLine={activePage.endLine} />
+                    {ruleDescriptionDisplayer(content, activePage)}
                 </div>
             )
         }
@@ -27,6 +31,31 @@ const FileErrorlist = ({ data }) => {
             no data
         </>
     }
+
+    const readFileFromBuffer = (file) => {
+        const data = files.find(f => f.name === file.originalname);
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsText(data);
+        });
+    };
+
+    const handleFileRead = async () => {
+        try {
+            const fileContent = await readFileFromBuffer(data[2]);
+            setContent(fileContent);
+        } catch (error) {
+            console.error('Error reading the file:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (data[2]) {
+            handleFileRead();
+        }
+    }, [data[2]]);
 
     return (
         <div className="flex">

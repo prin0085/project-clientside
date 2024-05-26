@@ -33,7 +33,7 @@
         "ruleId": "no-async-promise-executor",
         "title": "async function ใช้ไม่ถูกต้อง",
         "description": "ไม่อนุญาตให้ใช้ async function เป็นตัวดำเนินการของ Promise",
-        "message": "async function ไม่ควร เป็นตัวดำเนินการของ Promise"   
+        "message": "async function ไม่ควร เป็นตัวดำเนินการของ Promise"
     },
     {
         "ruleId": "no-await-in-loop",
@@ -44,7 +44,7 @@
     {
         "ruleId": "no-class-assign",
         "title": "ห้ามกำหนดค่าใหม่ให้กับ class member",
-        "description": "class ไม่สามารถกำหนดค่าตรงๆได้",
+        "description": "class ไม่สามารถกำหนดค่าตรง ๆ ได้",
         "message": "การกำหนดค่า class member ไม่ถูกต้อง"
     },
     {
@@ -52,5 +52,14 @@
         "title": "ค่าที่นำไปเทียบไม่ถูกต้อง",
         "description": "ห้าม ใช้ (-0) ในการนำไปเทียบค่า",
         "message": "ไม่ควรใช้ (-0) ในการนำไปเทียบค่า"
+    },
+    {
+        "ruleId": "no-const-assign",
+        "title": "ไม่สามารถเปลี่ยนค่าให้กับตัวแปรที่ประกาศด้วย const",
+        "description": "ไม่สามารถเปลี่ยนค่าให้กับตัวแปรที่ประกาศด้วย const",
+        "message": "การกำหนดค่าให้กับตัวแปรที่ประกาศด้วย const อาจจะทำให้เกิด runtime error ได้",
+        "solution": {
+            "1": "ประกาศตัวแปรด้วย var หรือ let แทน"
+        }
     }
 ]

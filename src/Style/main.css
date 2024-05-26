@@ -138,7 +138,7 @@
     font-variant-ligatures: none;
     left: 1.5rem;
     line-height: 1.5;
-    padding-top: 1.5rem;
+    /* padding-top: 1.5rem; */
     position: absolute;
     text-align: right;
     top: 0;
