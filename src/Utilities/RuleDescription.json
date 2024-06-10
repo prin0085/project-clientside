@@ -33,7 +33,7 @@
         "ruleId": "no-async-promise-executor",
         "title": "async function ใช้ไม่ถูกต้อง",
         "description": "ไม่อนุญาตให้ใช้ async function เป็นตัวดำเนินการของ Promise",
-        "message": "async function ไม่ควร เป็นตัวดำเนินการของ Promise"   
+        "message": "async function ไม่ควร เป็นตัวดำเนินการของ Promise"
     },
     {
         "ruleId": "no-await-in-loop",
@@ -44,7 +44,7 @@
     {
         "ruleId": "no-class-assign",
         "title": "ห้ามกำหนดค่าใหม่ให้กับ class member",
-        "description": "class ไม่สามารถกำหนดค่าตรงๆได้",
+        "description": "class ไม่สามารถกำหนดค่าตรง ๆ ได้",
         "message": "การกำหนดค่า class member ไม่ถูกต้อง"
     },
     {
@@ -54,6 +54,7 @@
         "message": "ไม่ควรใช้ (-0) ในการนำไปเทียบค่า"
     },
     {
+<<<<<<< HEAD
         "ruleId": "no-cond-assign",
         "title": "การกำหนดค่าภายใน condition ไม่ถูกต้อง",
         "description": "การกำหนดค่าภายใน condition ไม่ถูกต้อง เช่ร x = 0",
@@ -165,5 +166,14 @@
         "ruleId": "no-misleading-character-class",
         "title": "การใช้ class ของตัวอักษรที่สับสนใน regex",
         "description": "ห้ามใช้ character class ที่สับสน เช่น /[\\d.]/ ซึ่งอาจทำให้เข้าใจผิดว่าตัวอักษร 'd' และจุด '.' ใน character class"
+=======
+        "ruleId": "no-const-assign",
+        "title": "ไม่สามารถเปลี่ยนค่าให้กับตัวแปรที่ประกาศด้วย const",
+        "description": "ไม่สามารถเปลี่ยนค่าให้กับตัวแปรที่ประกาศด้วย const",
+        "message": "การกำหนดค่าให้กับตัวแปรที่ประกาศด้วย const อาจจะทำให้เกิด runtime error ได้",
+        "solution": {
+            "1": "ประกาศตัวแปรด้วย var หรือ let แทน"
+        }
+>>>>>>> dfb22b5b467a4b40a08005c08f2297c33d3a1b13
     }
 ]
