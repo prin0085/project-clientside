@@ -1,5 +1,8 @@
 import React from "react";
 import MaxParams from "./ruleDescription/MaxParams";
+import NoUnusedVar from "./ruleDescription/NoUnusedVar";
+import NoConstantCondition from "./ruleDescription/NoConstantCondition";
+import CodeDisplay from "./codeDisplay/codeDisplay";
 
 export const extractLines = (code, error) => {
     const startLine = error.line;
@@ -7,18 +10,17 @@ export const extractLines = (code, error) => {
     const nodeType = error.nodeType;
 
     const lines = code.split('\n');
-    const indicator = findName(error.message);
+    //const indicator = findName(error.message);
     let errorIndicator = lines.slice(startLine - 1, endLine)[0];
     //declarationNode(indicator)
-    const dataNodeType = {
-        "FunctionDeclaration": functionNode(code, errorIndicator),
-        "ArrowFunctionExpression": arrowFunctionNode(code, startLine, endLine),
-        "Identifier": lines.slice(startLine - 1, endLine)[0]
-    }
+    // const dataNodeType = {
+    //     "FunctionDeclaration": functionNode(code, errorIndicator),
+    //     "ArrowFunctionExpression": functionNode(code, errorIndicator),
+    // }
 
-    if (nodeType in dataNodeType) {
-        errorIndicator = dataNodeType[nodeType];
-    }
+    // if (nodeType in dataNodeType) {
+    //     errorIndicator = dataNodeType[nodeType];
+    // }
 
     return errorIndicator;
 }
@@ -41,21 +43,8 @@ export const functionNode = (code, indicator) => {
     return code.substring(startOfFunc, endOfFunc + 1)
 }
 
-export const arrowFunctionNode = (code, startLine, endLine) => {
-    const lines = code.split('\n');
-    let errorIndicator = lines.slice(startLine - 1, endLine)[0];
-    // const arrowFunctionRegex = /(var|let|const)\s+(\w+)\s*=\s*\([^)]*\)\s*=>\s*\{/;
-    // const match = errorIndicator.match(arrowFunctionRegex);
-
-    const startOfFunc = code.indexOf(errorIndicator);
-    const endOfFunc = findEndOfFunction(code, startOfFunc);
-
-    return code.substring(startOfFunc, endOfFunc + 1);
-}
-
-
-export const declarationNode = (indicator) => {
-    const exextract = findEndOfVariableDeclaration(indicator);
+export const declarationNode = (code, indicator) => {
+    const exextract = findEndOfVariableDeclaration(code, indicator);
 
     console.log(exextract)
 }
@@ -154,10 +143,27 @@ const findEndOfVariableDeclaration = (code, variableName) => {
     return [code.substring(declarationStartIndex, declarationEndIndex).trim(), linesBeforeDeclaration];
 }
 
-export const ruleDescriptionDisplayer = (code, error) => {
+export const ruleDescriptionDisplayer = (code, error, desciption) => {
     const nodeType = {
-        "max-params": <MaxParams file={code} error={error} />,
+        "max-params": <MaxParams file={code} error={error} des={desciption} />,
+        "no-unused-vars": <NoUnusedVar file={code} error={error} des={desciption} />,
+        "no-constant-condition": <NoConstantCondition file={code} error={error} des={desciption} />
     }
+    if (error.ruleId in nodeType) {
+        return nodeType[error.ruleId]
+    }
+    return <CodeDisplay codeTxt={extractLines(code, error)} />
+}
 
-    return nodeType[error.ruleId]
+export const addCommentsToEachLine = (inputString) => {
+    // Split the input string into an array of lines
+    const lines = inputString.split('\n');
+
+    // Add // to the beginning of each line
+    const commentedLines = lines.map(line => `// ${line}`);
+
+    // Join the array of commented lines back into a single string
+    const result = commentedLines.join('\n');
+
+    return result;
 }

@@ -1,16 +1,16 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef } from 'react';
 
-const CodeDisplay = ({ codeTxt }) => {
+const CodeDisplay = ({ codeTxt, customLine = 0 }) => {
     const [code, setCode] = useState('');
     const lineIndicate = useRef(null);
 
     const init = () => {
         lineIndicate.current.innerHTML = '';
         const numLines = codeTxt.split(/\r\n|\r|\n/).length;
-        for (let i = 1; i <= numLines + 1; i++) {
+        for (let i = 1; i <= numLines; i++) {
             const sp = document.createElement('span');
-            sp.innerHTML = i
+            sp.innerHTML = customLine + i
             sp.classList = 'line-number'
             const br = document.createElement('br');
             lineIndicate.current.appendChild(sp)

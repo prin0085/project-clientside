@@ -1,24 +1,72 @@
 /* eslint-disable no-unused-vars */
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { dataContext } from "../Context/context";
 import FileErrorlist from "./filetabComponents/FileErrorlist";
+import des from '../Utilities/RuleDescription.json';
+import { ruleDescriptionDisplayer } from './globalFunction';
+
+const filesData = {
+}
 
 export default function Summary() {
-    let [[analizeData, setAnalyzeData]] = useContext(dataContext);
+    const [[analizeData, setAnalyzeData], [files, setFile], [fileName, setFileName], [activePage, setActivePage]] = useContext(dataContext);
+
     const displayDataAnalize = () => {
-        console.log(analizeData)
-        return analizeData.map((row, rowIndex) => (
-            <div key={rowIndex}>
-                {<FileErrorlist data={[row[1].originalname, row[0], row[1]]} />}
-            </div>
-        ));
+        return (<FileErrorlist data={null} ndata={analizeData} />)
     }
 
+    const displayActivePage = () => {
+        const description = des.find(w => w.ruleId == activePage.ruleId);
+        //const content = handleFileRead();
+        if (description) {
+            return (
+                <div>
+                    <div><strong className="text-xl">{description.title}</strong></div>
+                    <p className="text-slate-400 text-sm">บรรทัดที่ : {activePage.line}</p>
+                    <p className="text-slate-400 text-sm">{description.description}</p>
+                    <div className="m-5">{description.message}</div>
+
+                    {/* {ruleDescriptionDisplayer(filesData[ac], activePage, description)} */}
+                </div>
+            )
+        }
+        return <>
+            no data
+        </>
+    }
+
+    const readFileFromBuffer = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsText(file);
+        });
+    };
+
+    const handleFileRead = async (f) => {
+        try {
+            const fileContent = await readFileFromBuffer(f);
+
+            filesData[f.name] = {
+                name: f.name,
+                value: fileContent
+            };
+        } catch (error) {
+            console.error('Error reading the file:', error);
+        }
+    };
+
     return (
-        <div className="overflow-hidden">
-            {
-                analizeData != 0 && displayDataAnalize()
-            }
+        <div className="overflow-hidden flex">
+            <div className="w-1/4">
+                {analizeData && displayDataAnalize()}
+            </div>
+            <div className="w-3/4">
+                <div className="p-5 overflow-auto h-90 invisble-scrollbar">
+                    {activePage && displayActivePage()}
+                </div>
+            </div>
         </div>
     )
 }

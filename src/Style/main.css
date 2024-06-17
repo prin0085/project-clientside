@@ -66,7 +66,6 @@
     color: white;
     background-color: #6f6f6f;
     cursor: pointer;
-    margin-bottom: 10px;
     transition: border-color 0.25s;
     width: 100%;
 }
@@ -158,4 +157,19 @@
 
 pre[class*=language-].line-numbers-mode {
     padding-left: calc(2.7rem + 2.4em);
+}
+
+.errorlist.active {
+    background-color: #6f6f6f;
+}
+
+.invisble-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.invisble-scrollbar {
+    -ms-overflow-style: none;
+    /* Internet Explorer 10+ */
+    scrollbar-width: none;
+    /* Firefox */
 }
