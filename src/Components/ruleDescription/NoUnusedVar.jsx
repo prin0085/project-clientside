@@ -18,6 +18,7 @@ const NoUnusedVar = ({ file, error, des }) => {
         // } else {
         const isArgs = isFuntionArgs();
         const matches = file.match(regex);
+        setInArgs(false)
         if (isArgs) {
             setInArgs(true)
             setCode(lineErrIndicate);

@@ -16,7 +16,8 @@ const FileErrorlist = ({ data, ndata }) => {
     };
 
     const handleOnclickActivePage = (item, e) => {
-        setActivePage(item);
+        item[0]['filename'] = item[1]
+        setActivePage(item[0]);
 
         const container = containerRef.current;
         if (container) {
@@ -44,7 +45,7 @@ const FileErrorlist = ({ data, ndata }) => {
                             {row[0].messages.map((item, index) => {
                                 return (
                                     <div key={index} className="w-full errorlist h-28 mt-2 p-2 border-2 cursor-pointer rounded"
-                                        onClick={(e) => handleOnclickActivePage(item, e)}>
+                                        onClick={(e) => handleOnclickActivePage([item, row[1].originalname], e)}>
                                         <div><h2>{item.ruleId}</h2></div>
                                         <div>{item.message}</div>
                                     </div>)

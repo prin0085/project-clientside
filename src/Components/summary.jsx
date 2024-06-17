@@ -17,7 +17,8 @@ export default function Summary() {
 
     const displayActivePage = () => {
         const description = des.find(w => w.ruleId == activePage.ruleId);
-        //const content = handleFileRead();
+        const filedata = analizeData.map(subArray => subArray[1]);
+        const content = filedata.find(w => w.originalname === activePage.filename).data
         if (description) {
             return (
                 <div>
@@ -26,7 +27,7 @@ export default function Summary() {
                     <p className="text-slate-400 text-sm">{description.description}</p>
                     <div className="m-5">{description.message}</div>
 
-                    {/* {ruleDescriptionDisplayer(filesData[ac], activePage, description)} */}
+                    {ruleDescriptionDisplayer(content, activePage, description)}
                 </div>
             )
         }

@@ -1,14 +1,15 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react';
 import CodeDisplay from "../codeDisplay/codeDisplay";
-import { extractLines } from './../globalFunction';
+import { extractLines, functionNode } from './../globalFunction';
 
 const MaxParams = ({ file, error }) => {
     const [code, setCode] = useState('');
 
     useEffect(() => {
         const extractCode = extractLines(file, error);
-        setCode(extractCode);
+        const wholeFunc = functionNode(file, extractCode)
+        setCode(wholeFunc);
     }, [error]);
 
     const example = '//ตัวแปร1 int, ตัวแปร2 string, ตัวแปร3 object\n' + code
