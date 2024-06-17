@@ -35,6 +35,7 @@ const FileErrorlist = ({ data, ndata }) => {
                 <div key={rowIndex} className={`pt-2 overflow-auto invisble-scrollbar ${rowIndex === openPage ? 'h-90' : ''}`}>
                     <div onClick={() => toggleOpen(rowIndex)} className="flex justify-between mb-0 cursor-pointer tab">
                         {row[1].originalname}
+
                         <div className="p-1">
                             {rowIndex === openPage ? <GoChevronUp /> : <GoChevronDown />}</div>
                     </div>

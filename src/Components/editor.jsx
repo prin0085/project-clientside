@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import Editor from "@monaco-editor/react";
 import axios from 'axios';
+//import FileTab from './fileTab';
 import { dataContext } from './../Context/context';
 
 const defaultfiles = {

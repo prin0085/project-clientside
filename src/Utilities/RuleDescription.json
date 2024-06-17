@@ -54,7 +54,12 @@
         "message": "ไม่ควรใช้ (-0) ในการนำไปเทียบค่า"
     },
     {
-        "ruleId": "no-const-assign",
+        "ruleId": "no-cond-assign",
+        "title": "การกำหนดค่าภายใน condition ไม่ถูกต้อง",
+        "description": "การกำหนดค่าภายใน condition ไม่ถูกต้อง เช่ร x = 0",
+        "message": "เช็ค condition ว่ามีการใส่เครื่องหมาย หรือ การกำหนดค่าผิดหรือไม่ เช่น if (x = 0)"
+    },
+    {
         "title": "ไม่สามารถเปลี่ยนค่าให้กับตัวแปรที่ประกาศด้วย const",
         "description": "ไม่สามารถเปลี่ยนค่าให้กับตัวแปรที่ประกาศด้วย const",
         "message": "การกำหนดค่าให้กับตัวแปรที่ประกาศด้วย const อาจจะทำให้เกิด runtime error ได้",
@@ -89,5 +94,113 @@
         "title": "ไม่ควรกำหนด statement เปล่า",
         "description": "",
         "message": ""
+    },
+    {
+        "ruleId": "no-const-assign",
+        "title": "ไม่สามารถกำหนดค่าใหม่ให้กับ const ที่มีการกำหนดค่าแล้วได้",
+        "description": "การเปลี่ยนแปลงค่าของ const ไม่สามารถทำได้",
+        "message": "ไม่สามารถกำหนดค่าใหม่ให้กับ const ที่มีการกำหนดค่าแล้วได้"
+    },
+    {
+        "ruleId": "no-constant-binary-expression",
+        "title": "ในเงื่อนไขที่เป็นค่าคงที่",
+        "description": "ห้ามใช้เงื่อนไขที่เป็นค่าคงที่ใน statements เช่น if (true)",
+        "message": "ห้ามใช้เงื่อนไขที่เป็นค่าคงที่ใน statements เช่น if (true)"
+    },
+    {
+        "ruleId": "no-control-regex",
+        "title": "ห้ามใช้ control characters ใน regex",
+        "description": "ห้ามใช้ control characters (เช่น \\x1f) ใน regular expressions",
+        "message": "ห้ามใช้ control characters (เช่น \\x1f) ใน regular expressions"
+    },
+    {
+        "ruleId": "no-debugger",
+        "title": "ห้ามใช้ debugger",
+        "description": "ห้ามใช้คำสั่ง debugger ในโค้ด",
+        "message": "พบการใช้ debugger หากไม่มีการใช้งานแล้วให้ ลบหรือคอมเมนต์ออก"
+    },
+    {
+        "ruleId": "no-dupe-args",
+        "title": "ชื่อพารามิเตอร์ซ้ำในฟังก์ชัน",
+        "description": "ห้ามมีชื่อพารามิเตอร์ซ้ำในฟังก์ชัน",
+        "message": "พบชื่อพารามิเตอร์ซ้ำในฟังก์ชัน"
+    },
+    {
+        "ruleId": "no-dupe-keys",
+        "title": "ชื่อ key ซ้ำใน object",
+        "description": "ห้ามมีชื่อ key ซ้ำใน object literals",
+        "message": "พบชื่อ key ซ้ำใน object"
+    },
+    {
+        "ruleId": "no-duplicate-case",
+        "title": "case ซ้ำใน switch",
+        "description": "ห้ามมี case ซ้ำใน switch statements",
+        "message": "พบ case ซ้ำใน switch"
+    },
+    {
+        "ruleId": "no-empty",
+        "title": "พบ statements ไม่มีการกำหนดการทำงาน",
+        "description": "ห้ามมีstatementsที่ไม่มีการกำหนดใดๆ",
+        "message": "พบ statements ไม่มีการกำหนดการทำงาน"
+    },
+    {
+        "ruleId": "no-empty-character-class",
+        "title": "ตัวอักษรใน regex ว่างเปล่า",
+        "description": "ห้ามมี class ว่างเปล่าใน regular expressions",
+        "message": "พบ class ว่างเปล่าใน regex"
+    },
+    {
+        "ruleId": "no-ex-assign",
+        "title": "ห้ามกำหนดค่าใหม่ให้กับ exception",
+        "description": "ห้ามกำหนดค่าใหม่ให้กับตัวแปร exception ใน catch block",
+        "message": "ห้ามการกำหนดค่าใหม่ให้กับ exception"
+    },
+    {
+        "ruleId": "no-extra-boolean-cast",
+        "title": "การ cast เป็น boolean ที่เกินจำเป็น",
+        "description": "ห้ามใช้ boolean cast ที่ไม่จำเป็น เช่น !!a",
+        "message": "พบการ cast เป็น boolean ที่ไม่จำเป็น"
+    },
+    {
+        "ruleId": "no-extra-parens",
+        "title": "วงเล็บเกินจำเป็น",
+        "description": "ห้ามใช้วงเล็บที่เกินจำเป็น",
+        "message": "พบวงเล็บที่เกินจำเป็น"
+    },
+    {
+        "ruleId": "no-extra-semi",
+        "title": "semicolon เกินจำเป็น",
+        "description": "ห้ามใช้ semicolon ที่เกินจำเป็น",
+        "message": "พบ semicolon ที่เกินจำเป็น"
+    },
+    {
+        "ruleId": "no-func-assign",
+        "title": "การกำหนดค่าใหม่ให้กับฟังก์ชัน",
+        "description": "ห้ามกำหนดค่าใหม่ให้กับฟังก์ชัน",
+        "message": "ห้ามการกำหนดค่าใหม่ให้กับฟังก์ชัน"
+    },
+    {
+        "ruleId": "no-inner-declarations",
+        "title": "ห้ามประกาศฟังก์ชันหรือ variables ในบล็อก",
+        "description": "ห้ามประกาศฟังก์ชันหรือ variables ในบล็อก (เช่น if หรือ for)",
+        "message": "ห้ามประกาศฟังก์ชันหรือ variables ในบล็อก (เช่น if หรือ for)"
+    },
+    {
+        "ruleId": "no-invalid-regexp",
+        "title": "regular expressions ไม่ถูกต้อง",
+        "description": "ห้ามใช้ regular expressions ที่ไม่ถูกต้อง",
+        "message": "พบ regular expressions ไม่ถูกต้อง"
+    },
+    {
+        "ruleId": "no-irregular-whitespace",
+        "title": "space ที่ไม่ปกติ",
+        "description": "ห้ามใช้ช่องว่างที่ไม่ปกติในโค้ด",
+        "message": "ห้ามใช้ช่องว่างที่ไม่ปกติในโค้ด เช่น non-breaking space (NBSP) หรือ zero-width space (ZWSP)"
+    },
+    {
+        "ruleId": "no-misleading-character-class",
+        "title": "การใช้ class ของตัวอักษรที่สับสนใน regex",
+        "description": "ห้ามใช้ character class ที่สับสน เช่น /[\\d.]/ ซึ่งอาจทำให้เข้าใจผิดว่าตัวอักษร 'd' และจุด '.' ใน character class",
+        "message": "ห้ามใช้ character class ที่สับสน เช่น /[\\d.]/ ซึ่งอาจทำให้เข้าใจผิดว่าตัวอักษร 'd' และจุด '.' ใน character class"
     }
 ]
