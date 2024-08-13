@@ -66,6 +66,48 @@ const NoUnusedVar = ({ file, error, des }) => {
     //     };
     // }
 
+    const removeFormfile = () => {
+        //remove a variable
+        const lineNumber = error.line;
+        const textfile = file.split('\n');
+        let declareLine = 0;
+        // this is code where variable has been mod
+        // but variable still didnt use anywhere
+        if (lineErrIndicate.trim() != code) {
+            for (const txt of textfile) {
+                declareLine++;
+                if (txt.includes(code)) {
+                    break;
+                }
+            }
+        }
+        // if (!isInArgs) {
+        // }
+
+        removeLinesByNumbers([lineNumber, declareLine]);
+    };
+
+    function removeLinesByNumbers(lineNumbers) {
+        // Split the text into an array of lines
+        let lines = file.split('\n');
+
+        // Sort the lineNumbers array in descending order
+        lineNumbers.sort((a, b) => b - a);
+
+        // Remove the specified lines
+        for (let lineNumber of lineNumbers) {
+            // Check if the lineNumber is within the valid range
+            if (lineNumber >= 1 && lineNumber <= lines.length) {
+                // Remove the specified line (lineNumber - 1 because arrays are 0-indexed)
+                lines.splice(lineNumber - 1, 1);
+            }
+        }
+
+        // Join the array back into a single string
+        //return
+        console.log(lines.join('\n'));
+    }
+
     const createVariableRegex = (variableName) => {
         return new RegExp(`\\b(var|let|const)\\s+\\b${variableName}\\b[^;]*;`, 'g');
     }
@@ -78,11 +120,15 @@ const NoUnusedVar = ({ file, error, des }) => {
             <CodeDisplay codeTxt={code} />
             <div className="m-5">
                 สามารถแก้ได้โดย
-                <div className='pl-5'><strong> - {des.solution[1]} </strong></div>
+                <div className='pl-5'>
+                    <strong> - {des.solution[1]} </strong>
+                    <span onClick={() => removeFormfile()} className='clickable'>
+                        คลิกเพื่อนำออก
+                    </span>
+                </div>
                 <div className='pl-5'><strong> - {des.solution[2]} </strong></div>
             </div>
             {isInArgs ? <CodeDisplay codeTxt={example1} /> : <CodeDisplay codeTxt={example} />}
-
         </>
     );
 };
