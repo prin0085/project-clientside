@@ -1,0 +1,133 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #1e1e2e;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+}
+
+.file-upload-container {
+    padding: 20px;
+    display: flex;
+    box-sizing: border-box;
+}
+
+.file-list {
+    width: 20%;
+    background-color: #282c34;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-y: auto;
+    flex-basis: 20%;
+}
+
+.file-list h3 {
+    margin: 0 0 10px;
+}
+
+.file-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.file-button {
+    background-color: #5e5e5e;
+    color: white;
+    padding: 8px;
+    margin: 5px 0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.file-button.active {
+    background-color: #28a745;
+}
+
+.editor-container {
+    border-radius: 5px;
+    flex-basis: 40%;
+}
+
+
+.choose-file-button {
+    background-color: #ffc107;
+    color: black;
+    padding: 10px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.linting-results {
+    flex-basis: 40%;
+    padding: 0 20px 20px 20px;
+}
+
+.linting-results ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.linting-results li {
+    margin-bottom: 10px;
+}
+
+.linting-results .error {
+    background-color: #89123e;
+}
+
+.linting-results .warning {
+    background-color: orange;
+}
+
+.linting-results h4 {
+    font-size: 18px;
+    margin: 5px 0;
+}
+
+.monaco-editor .warning-line {
+    background-color: rgba(255, 165, 0, 0.2);
+    /* Light yellow for warning */
+}
+
+.monaco-editor .error-line {
+    background-color: rgba(255, 0, 0, 0.2);
+    /* Light red for error */
+}
+
+.myInlineDecoration {
+    background: lightgreen;
+}
+
+.text-underline {
+    cursor: pointer;
+    margin-right: 5px;
+    text-decoration-line: underline;
+}
+
+.lint-result-container {
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    border: 1px solid #ff5795;
+}

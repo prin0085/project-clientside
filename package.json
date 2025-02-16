@@ -10,9 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fortawesome/react-fontawesome": "^0.2.0",
     "@headlessui/react": "^1.7.17",
-    "@material-tailwind/react": "^2.1.9",
     "@monaco-editor/react": "^4.6.0",
     "aos": "^2.3.4",
     "axios": "^1.6.7",
@@ -32,7 +30,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.5",
     "vite": "^4.4.5"
   },
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",

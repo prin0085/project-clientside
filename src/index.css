@@ -1,8 +1,5 @@
 @import './Style/theme.css';
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   font-family: 'IBM Plex Sans Thai', sans-serif;
