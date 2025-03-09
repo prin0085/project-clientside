@@ -81,24 +81,14 @@ body {
 .linting-results {
     flex-basis: 40%;
     padding: 0 20px 20px 20px;
+    height: 95%; 
 }
 
-.linting-results ul {
-    list-style-type: none;
-    padding: 0;
+.linting-results-container {
+    overflow: auto;
+    height: 100%;
 }
 
-.linting-results li {
-    margin-bottom: 10px;
-}
-
-.linting-results .error {
-    background-color: #89123e;
-}
-
-.linting-results .warning {
-    background-color: orange;
-}
 
 .linting-results h4 {
     font-size: 18px;
@@ -127,7 +117,72 @@ body {
 
 .lint-result-container {
     padding: 5px;
-    margin-bottom: 5px;
     border-radius: 5px;
-    border: 1px solid #ff5795;
+    border: 1px solid #aaaaaa;
+    border-left: 4px solid #ff9900;
+    background-color: #1c1c1c;
+    margin-bottom: 10px;
+}
+
+.lint-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mt-3 {
+    margin-top: 0.75rem;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.height-100 {
+    height: 95vh;
+}
+
+.error-toggle {
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-weight: bold;
+}
+
+.error-description {
+    height: 0;
+    transition: height 0.7s linear;
+}
+
+.error-description.active {
+    margin-top: 5px;
+    background-color: #f9f9f9;
+    padding: 10px;
+    display: block;
+    color: black;
+    margin-bottom: 5px;
+    height: auto !important;
+}
+
+.btn-applyfix {
+    width: fit-content;
+    text-wrap: nowrap;
+    background-color: #ff9900;
 }
