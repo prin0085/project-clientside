@@ -3,6 +3,8 @@ import axios from "axios";
 import Editor from "@monaco-editor/react";
 import "./fileUpload.css";
 import ruleDescriptions from "../Utilities/RuleDescription.json";
+import { isFixAble } from './globalFunction';
+import { removeUnusedVars } from './codeFixer/removeUnusedVar'
 
 const FileUpload = () => {
   const [files, setFiles] = useState([]);
@@ -106,129 +108,6 @@ const FileUpload = () => {
     }
   };
 
-
-  //   const getLintingDecorations = () => {
-  //     const decorations = [];
-  //     lintingResults.forEach((file) => {
-  //       file.lintResult.messages.forEach((message) => {
-  //         if (message.line) {
-  //           decorations.push({
-  //             range: new monaco.Range(message.line, 1, message.line, 1),
-  //             options: {
-  //               isWholeLine: true,
-  //               className: message.severity === 1 ? "warning-line" : "error-line",
-  //             },
-  //           });
-  //         }
-  //       });
-  //     });
-  //     return decorations;
-  //   };
-
-  const removeUnusedVariable = (code, line, endColumn) => {
-    const codeLines = code.split("\n"); // Split code into lines
-
-    if (line > codeLines.length) return code; // Ensure line exists
-
-    const targetLine = codeLines[line - 1]; // Get the target line (ESLint is 1-based)
-    const declarationRegex = /^(let|const|var)\s+/;
-
-    if (!declarationRegex.test(targetLine)) return code; // Not a variable declaration
-
-    const keywordMatch = targetLine.match(declarationRegex);
-    if (!keywordMatch) return code;
-
-    const keyword = keywordMatch[0]; // "let ", "const ", or "var "
-    const variables = targetLine
-      .replace(keyword, "")
-      .split(",")
-      .map((v) => v.trim());
-
-    // Find the variable to remove based on `endColumn`
-    let columnIndex = endColumn - 1;
-    let charCount = targetLine.indexOf(keyword) + keyword.length;
-
-    let variableToRemove = null;
-    for (let i = 0; i < variables.length; i++) {
-      charCount += variables[i].length;
-      if (columnIndex <= charCount) {
-        variableToRemove = variables[i]; // Found variable to remove
-        break;
-      }
-      charCount++; // Account for commas and spaces
-    }
-
-    if (!variableToRemove) return code; // No match found
-
-    // Remove the selected variable
-    const updatedVariables = variables.filter((v) => v !== variableToRemove);
-
-    if (updatedVariables.length === 0) {
-      // If no variables remain, remove the entire line
-      codeLines.splice(line - 1, 1);
-    } else {
-      // Reconstruct the declaration without the removed variable
-      codeLines[line - 1] = `${keyword}${updatedVariables.join(", ")}`;
-    }
-
-    return codeLines.join("\n"); // Reconstruct updated code
-  };
-
-  const removeUnusedFunctionArgument = (code, line, endColumn) => {
-    const codeLines = code.split("\n");
-    console.log(code, line, endColumn);
-    if (line > codeLines.length) return code;
-
-    let targetLine = codeLines[line - 1];
-    const functionRegex =
-      /(function\s+\w+\s*\(|\w+\s*=>|\w+\s*=\s*\(.*\)\s*=>)/;
-
-    if (!functionRegex.test(targetLine)) return code;
-
-    const paramsMatch = targetLine.match(/\(([^)]*)\)/);
-    if (!paramsMatch) return code;
-
-    let params = paramsMatch[1].split(","); //.map((p) => p.trim());
-    if (params.length === 0) return code;
-
-    let columnIndex = endColumn - 1;
-    let charCount = targetLine.indexOf("(") + 1;
-
-    let argToRemove = null;
-    for (let i = 0; i < params.length; i++) {
-      charCount += params[i].length;
-      if (columnIndex <= charCount) {
-        argToRemove = params[i];
-        break;
-      }
-      charCount++;
-    }
-
-    if (!argToRemove) return code;
-
-    params = params.filter((param) => param !== argToRemove);
-
-    const updatedParams =
-      params.length > 0 ? `(${params.map((p) => p.trim()).join(", ")})` : "()";
-    targetLine = targetLine.replace(/\([^)]*\)/, updatedParams);
-
-    codeLines[line - 1] = targetLine;
-    return codeLines.join("\n");
-  };
-
-  const removeUnusedVars = (code, line, endColumn) => {
-    const isFunctionArgument =
-      code.split("\n")[line - 1].includes("(") &&
-      code.split("\n")[line - 1].includes(")");
-
-    console.log(isFunctionArgument);
-    if (isFunctionArgument) {
-      return removeUnusedFunctionArgument(code, line, endColumn);
-    } else {
-      return removeUnusedVariable(code, line, endColumn);
-    }
-  };
-
   const applyFix = async (message) => {
     if (!selectedFileContent.source) return;
 
@@ -236,20 +115,8 @@ const FileUpload = () => {
 
     switch (message.ruleId) {
       case "no-unused-vars":
-        updatedCode = removeUnusedVars(
-          updatedCode,
-          message.line,
-          message.endColumn
-        );
+        updatedCode = removeUnusedVars(updatedCode, message);
         break;
-
-      // case "no-unused-function-argument":
-      //   updatedCode = removeUnusedFunctionArgument(
-      //     updatedCode,
-      //     message.line,
-      //     message.endColumn
-      //   );
-      //   break;
 
       default:
         console.warn(`No automatic fix available for rule: ${message.ruleId}`);
@@ -264,22 +131,26 @@ const FileUpload = () => {
         { headers: { "Content-Type": "application/json" } }
       );
 
+      // update source code in monoeditor
       setSelectedFileContent((prev) => ({
         ...prev,
         source: updatedCode,
       }));
 
+      // update source code
       setEditedFiles((prevFiles) =>
         prevFiles.map((file) =>
           file.name === selectedFileContent.name ? { ...file, source: updatedCode } : file
         )
       );
 
+      // update lint result that display right now
       setSelectedLintContent((prev) => ({
         ...prev,
         lintResult: response.data.lintResult,
       }));
 
+      // update lint result for that file
       setLintingResults((prevLint) =>
         prevLint.map((file) =>
           file.originalname === selectedFileContent.name ? { ...file, lintResult: response.data.lintResult } : file
@@ -291,10 +162,10 @@ const FileUpload = () => {
   };
 
   const downloadModifiedFile = () => {
-    if (!selectedFileContent.source) {
-      alert("No modified content available for download.");
-      return;
-    }
+    // if (!selectedFileContent.source) {
+    //   alert("No modified content available for download.");
+    //   return;
+    // }
 
     const blob = new Blob([selectedFileContent.source], {
       type: "text/javascript",
@@ -341,9 +212,14 @@ const FileUpload = () => {
             theme="vs-dark"
             defaultLanguage="javascript"
             value={selectedFileContent.source}
-            onChange={(value) =>
-              setSelectedFileContent((prev) => ({ ...prev, source: value }))
-            }
+            onChange={(value) => {
+              setSelectedFileContent((prev) => ({ ...prev, source: value }));
+              setEditedFiles((prevFiles) =>
+                prevFiles.map((file) =>
+                  file.name === selectedFileContent.name ? { ...file, source: value } : file
+                )
+              );
+            }}
             options={{
               readOnly: false,
               lineNumbers: "on",
@@ -375,9 +251,9 @@ const FileUpload = () => {
                           <span>{message.message}</span>
                         </div>
 
-                        <button className="btn-applyfix" onClick={() => applyFix(message)}>
+                        {isFixAble(message.ruleId) && <button className="btn-applyfix" onClick={() => applyFix(message)}>
                           Apply Fix
-                        </button>
+                        </button>}
                       </div>
 
                       <div className={`error-description ${expandedError === idx ? "active" : ""}`}>
