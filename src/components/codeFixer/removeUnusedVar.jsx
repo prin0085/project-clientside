@@ -11,13 +11,13 @@ export const isFunctionDeclaration = (line) => {
 
 export const removeUnusedVars = (code, error) => {
     const line = error.line;
-    const endColumn = error.endColumn;
+    const endColumn = error.column;
     const codeLines = code.split("\n");
     const targetLine = codeLines[line - 1];
     const fIndex = targetLine.indexOf("(");
     const lIndex = targetLine.indexOf(")");
+    const isFunctionArgument = fIndex < (endColumn - 1) && lIndex > (endColumn - 1);
 
-    const isFunctionArgument = fIndex < endColumn - 1 && lIndex > endColumn - 1;
     // check if it was function argument... 
     if (isFunctionArgument) {
         console.log('is functionArgument');
@@ -54,7 +54,18 @@ const removeUnusedVariable = (code, line, endColumn) => {
     const targetLine = codeLines[line - 1]; // Get the target line (ESLint is 1-based)
     const declarationRegex = /^(let|const|var)\s+/;
 
-    if (!declarationRegex.test(targetLine)) return code; // Not a variable declaration
+    if (!declarationRegex.test(targetLine)) {
+        const tokens = targetLine.trim().split("=");
+        const leftSide = tokens[0]?.trim();
+
+        if (isSimpleReassignment(targetLine, leftSide)) {
+            // Remove reassignment line (like a = 5;)
+            codeLines.splice(line - 1, 1);
+            return codeLines.join("\n");
+        }
+
+        return code; // Not a variable declaration
+    }
 
     const keywordMatch = targetLine.match(declarationRegex);
 
@@ -99,7 +110,6 @@ const removeUnusedVariable = (code, line, endColumn) => {
 
 const removeUnusedFunctionArgument = (code, line, endColumn) => {
     const codeLines = code.split("\n");
-    console.log(code, line, endColumn);
     if (line > codeLines.length) return code;
 
     let targetLine = codeLines[line - 1];
@@ -138,3 +148,8 @@ const removeUnusedFunctionArgument = (code, line, endColumn) => {
     codeLines[line - 1] = targetLine;
     return codeLines.join("\n");
 };
+
+const isSimpleReassignment = (lineText, variable) => {
+    const regex = new RegExp(`^\\s*${variable}\\s*=`);
+    return regex.test(lineText.trim());
+}; 

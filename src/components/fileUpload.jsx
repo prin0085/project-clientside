@@ -69,7 +69,19 @@ const FileUpload = () => {
         }
       );
       console.log("Upload Successful:", response.data);
-      setLintingResults(response.data); // Store linting results 
+      setLintingResults(response.data); // Store linting results
+      console.log(response.data[0]);
+      const newSource = response.data[0].lintResult.source || response.data[0].lintResult.output;
+      const newFile = {
+        name: response.data[0].originalname,
+        source: newSource,
+      };
+      setSelectedFileContent(newFile);
+      setEditedFiles((prevFiles) =>
+        prevFiles.map((file) =>
+          file.name === selectedFileContent.name ? { ...file, source: newSource } : file
+        )
+      );
     } catch (error) {
       console.error("Error uploading file:", error);
     }
@@ -100,8 +112,8 @@ const FileUpload = () => {
         const fileLintResults = lintingResults.find(
           (result) => result.originalname === file.name
         );
-        setSelectedLintContent(fileLintResults || null);
 
+        setSelectedLintContent(fileLintResults || null);
         setEditedFiles((prev) => [...prev, newFile]);
       };
       reader.readAsText(file);
@@ -134,16 +146,17 @@ const FileUpload = () => {
       // update source code in monoeditor
       setSelectedFileContent((prev) => ({
         ...prev,
-        source: updatedCode,
+        source: response.data.lintResult.source,
       }));
 
       // update source code
       setEditedFiles((prevFiles) =>
         prevFiles.map((file) =>
-          file.name === selectedFileContent.name ? { ...file, source: updatedCode } : file
+          file.name === selectedFileContent.name ? { ...file, source: response.data.lintResult.source } : file
         )
       );
 
+      console.log(response.data.lintResult);
       // update lint result that display right now
       setSelectedLintContent((prev) => ({
         ...prev,
@@ -236,9 +249,9 @@ const FileUpload = () => {
             </button>
             )}
           </div>
-          {selectedLintContent ? (
+          {selectedLintContent?.messages ? (
             <div className="linting-results-container">
-              <div className="mt-3">
+              <div className="mt-3"> 
                 {selectedLintContent.lintResult?.messages?.map((message, idx) => {
                   const ruleDetails = getRuleDetails(message.ruleId);
                   return (
