@@ -46,7 +46,7 @@ export const declarationNode = (code, indicator) => {
 }
 
 export const isFixAble = (ruleId) => {
-    const sol = ['no-unused-vars'];
+    const sol = ['no-unused-vars','eqeqeq'];
 
     return sol.findIndex(w => w === ruleId) > -1;
 }

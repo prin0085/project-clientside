@@ -1,4 +1,3 @@
-import React from "react";
 import { functionNode } from '../globalFunction';
 
 export const isFunctionDeclaration = (line) => {
@@ -14,15 +13,15 @@ export const removeUnusedVars = (code, error) => {
     const endColumn = error.column;
     const codeLines = code.split("\n");
     const targetLine = codeLines[line - 1];
-    const fIndex = targetLine.indexOf("(");
-    const lIndex = targetLine.indexOf(")");
-    const isFunctionArgument = fIndex < (endColumn - 1) && lIndex > (endColumn - 1);
+
+    var cat = categorizeLine(targetLine);
 
     // check if it was function argument... 
-    if (isFunctionArgument) {
+    if (cat.type === 'function-parameters') {
         console.log('is functionArgument');
         return removeUnusedFunctionArgument(code, line, endColumn);
-    } else if (isFunctionDeclaration(targetLine)) {
+        // } else if (isFunctionDeclaration(targetLine)) {
+    } else if (cat.type === 'function-declaration') {
         console.log('is function declare');
         return removeUnusedFunction(code, targetLine);
     } else {
@@ -152,4 +151,31 @@ const removeUnusedFunctionArgument = (code, line, endColumn) => {
 const isSimpleReassignment = (lineText, variable) => {
     const regex = new RegExp(`^\\s*${variable}\\s*=`);
     return regex.test(lineText.trim());
-}; 
+};
+
+const categorizeLine = (line) => {
+    // Match var/let/const with variable names including $ and _
+    const varDecl = /^\s*(var|let|const)\s+([$A-Za-z_][$\w]*)/.exec(line);
+    if (varDecl) {
+        return { type: 'variable', name: varDecl[2] };
+    }
+
+    // Match function declaration
+    const funcDecl = /^\s*function\s+([A-Za-z_]\w*)\s*\(/.exec(line);
+    if (funcDecl) {
+        return { type: 'function-declaration', name: funcDecl[1] };
+    }
+
+    // Match function parameters in function decl
+    const funcParamMatch = /function\s+\w*\s*\(([^)]*)\)/.exec(line)
+        || /\(([^)]*)\)\s*=>/.exec(line);
+    if (funcParamMatch) {
+        const params = funcParamMatch[1]
+            .split(',')
+            .map(p => p.trim())
+            .filter(p => p);
+        return { type: 'function-parameters', params };
+    }
+
+    return { type: 'other' };
+}

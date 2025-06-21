@@ -5,6 +5,7 @@ import "./fileUpload.css";
 import ruleDescriptions from "../Utilities/RuleDescription.json";
 import { isFixAble } from './globalFunction';
 import { removeUnusedVars } from './codeFixer/removeUnusedVar'
+import { eqeqeq } from "./codeFixer/eqeqeq";
 
 const FileUpload = () => {
   const [files, setFiles] = useState([]);
@@ -129,6 +130,9 @@ const FileUpload = () => {
       case "no-unused-vars":
         updatedCode = removeUnusedVars(updatedCode, message);
         break;
+      case "eqeqeq":
+        updatedCode = eqeqeq(updatedCode, message);
+        break;
 
       default:
         console.warn(`No automatic fix available for rule: ${message.ruleId}`);
@@ -137,10 +141,16 @@ const FileUpload = () => {
     }
 
     try {
+      const codeBlob = new Blob([updatedCode], { type: "text/plain" });
+      const codeFile = new File([codeBlob], selectedFileContent.name, { type: "text/plain" });
+      const formData = new FormData();
+      formData.append("files", codeFile);
       const response = await axios.post(
         "http://localhost:3001/lint",
-        { code: updatedCode },
-        { headers: { "Content-Type": "application/json" } }
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
 
       // update source code in monoeditor
@@ -243,16 +253,16 @@ const FileUpload = () => {
 
         <div className="linting-results">
           <div className="flex items-center justify-between">
-            <h3>Linting Results:</h3>
+            <h3>Linting Results: {selectedLintContent?.lintResult?.errorCount | 0}</h3>
             {selectedLintContent && (<button onClick={() => downloadModifiedFile(selectedLintContent)}>
               Download Fixed File
             </button>
             )}
           </div>
-          {selectedLintContent?.messages ? (
+          {selectedLintContent?.lintResult?.errorCount > 0 ? (
             <div className="linting-results-container">
-              <div className="mt-3"> 
-                {selectedLintContent.lintResult?.messages?.map((message, idx) => {
+              <div className="mt-3">
+                {selectedLintContent.lintResult.messages.map((message, idx) => {
                   const ruleDetails = getRuleDetails(message.ruleId);
                   return (
                     <div className="lint-result-container" key={idx}>
@@ -282,6 +292,7 @@ const FileUpload = () => {
                                 ))}
                               </ul>
                             )}
+                            <div className="text-right">ref: {idx}</div>
                           </>
                         )}
                       </div>
