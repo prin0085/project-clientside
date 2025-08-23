@@ -6,6 +6,11 @@ import ruleDescriptions from "../Utilities/RuleDescription.json";
 import { isFixAble } from './globalFunction';
 import { removeUnusedVars } from './codeFixer/removeUnusedVar'
 import { eqeqeq } from "./codeFixer/eqeqeq";
+import { noExtraSemi } from './codeFixer/noExtraSemi';
+import { noTrailingSpaces } from './codeFixer/noTrailingSpaces';
+import { eolLast } from './codeFixer/eolLast';
+import { semi } from './codeFixer/semi';
+import { quotes } from './codeFixer/quotes';
 
 const FileUpload = () => {
   const [files, setFiles] = useState([]);
@@ -20,10 +25,7 @@ const FileUpload = () => {
   const monacoObjects = useRef(null);
 
   const editorDidMount = (editor, monaco) => {
-    monacoObjects.current = {
-      editor,
-      monaco,
-    };
+    monacoObjects.current = editor
   };
 
   // useEffect(() => {
@@ -48,6 +50,15 @@ const FileUpload = () => {
       setFiles(newFiles);
     }
   };
+
+  const goToLine = (lineNumber) => {
+    if (monacoObjects.current) {
+      console.log(monacoObjects.current);
+      monacoObjects.current.revealLineInCenter(lineNumber);
+      monacoObjects.current.setPosition({ lineNumber, column: 1 });
+      monacoObjects.current.focus();
+    }
+  }
 
   const handleUpload = async () => {
     if (files.length === 0) {
@@ -132,6 +143,21 @@ const FileUpload = () => {
         break;
       case "eqeqeq":
         updatedCode = eqeqeq(updatedCode, message);
+        break;
+      case "no-extra-semi":
+        updatedCode = noExtraSemi(updatedCode, message);
+        break;
+      case "no-trailing-spaces":
+        updatedCode = noTrailingSpaces(updatedCode, message);
+        break;
+      case "eol-last":
+        updatedCode = eolLast(updatedCode, message);
+        break;
+      case "semi":
+        updatedCode = semi(updatedCode, message);
+        break;
+      case "quotes":
+        updatedCode = quotes(updatedCode, message);
         break;
 
       default:
@@ -267,11 +293,13 @@ const FileUpload = () => {
                   return (
                     <div className="lint-result-container" key={idx}>
                       <div className={"lint-result-header"}>
-                        <div className={"error-toggle truncate"} onClick={() => toggleExpand(idx)}>
-                          <span className="text-underline">
+                        <div className={"error-toggle truncate"} >
+                          <span className="text-underline" onClick={() => goToLine(message.line)}>
                             {message.line}:{message.endColumn}
                           </span>
-                          <span>{message.message}</span>
+                          <span onClick={() => toggleExpand(idx)}>
+                            {message.message}
+                          </span>
                         </div>
 
                         {isFixAble(message.ruleId) && <button className="btn-applyfix" onClick={() => applyFix(message)}>

@@ -46,7 +46,15 @@ export const declarationNode = (code, indicator) => {
 }
 
 export const isFixAble = (ruleId) => {
-    const sol = ['no-unused-vars','eqeqeq'];
+    const sol = [
+        'no-unused-vars',
+        'eqeqeq',
+        'no-extra-semi',
+        'no-trailing-spaces',
+        'eol-last',
+        'semi',
+        'quotes'
+    ];
 
     return sol.findIndex(w => w === ruleId) > -1;
 }
@@ -156,4 +164,45 @@ export const addCommentsToEachLine = (inputString) => {
     const result = commentedLines.join('\n');
 
     return result;
+}
+
+// Context analysis utilities for Phase 2 rules
+export const analyzeContext = (line, column) => {
+    let inString = false;
+    let stringChar = '';
+    let inComment = false;
+    
+    for (let i = 0; i < column && i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+        
+        if (inString) {
+            // Check for end of string (handle escaped quotes)
+            if (char === stringChar && line[i - 1] !== '\\') {
+                inString = false;
+                stringChar = '';
+            }
+        } else if (inComment) {
+            // Single line comments continue to end of line
+            continue;
+        } else {
+            // Check for start of string
+            if (char === '"' || char === "'" || char === '`') {
+                inString = true;
+                stringChar = char;
+            }
+            // Check for start of comment
+            else if (char === '/' && nextChar === '/') {
+                inComment = true;
+                i++; // Skip next char
+            }
+        }
+    }
+    
+    return { inString, inComment, stringChar };
+}
+
+export const isInsideStringOrComment = (line, column) => {
+    const context = analyzeContext(line, column);
+    return context.inString || context.inComment;
 }
