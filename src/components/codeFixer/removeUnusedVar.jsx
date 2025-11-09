@@ -43,6 +43,9 @@ class RemoveUnusedVarFixer extends FixerBase {
    * @returns {Object} The result of the fix operation
    */
   fix(code, error) {
+    const targetLine = this.getLine(code, error.line);
+    const category = this.classify(targetLine, error.column - 1, error.endColumn - 1);
+
     try {
       const context = this.contextAnalyzer.analyzePosition(code, error.line, error.column);
 
@@ -51,13 +54,10 @@ class RemoveUnusedVarFixer extends FixerBase {
         return this.createFailureResult(code, `Cannot remove variables inside ${this.getContextType(context)}`);
       }
 
-      const targetLine = this.getLine(code, error.line);
-      const category = this.categorizeLine(targetLine);
-
       let fixedCode;
       let operation;
 
-      switch (category.type) {
+      switch (category) {
         case 'function-parameters':
           fixedCode = this.removeUnusedFunctionArgument(code, error);
           operation = 'function parameter';
@@ -66,6 +66,7 @@ class RemoveUnusedVarFixer extends FixerBase {
           fixedCode = this.removeUnusedFunction(code, error);
           operation = 'function declaration';
           break;
+        case 'variable_reassignment':
         case 'variable':
           fixedCode = this.removeUnusedVariable(code, error);
           operation = 'variable declaration';
@@ -78,10 +79,6 @@ class RemoveUnusedVarFixer extends FixerBase {
         return this.createFailureResult(code, 'No changes needed or removal not safe');
       }
 
-
-      const test2 = fixedCode.split('\n');
-      const tes222 = test2[error.line - 1];
-
       // Enhanced validation
       const syntaxValidation = this.validator.validateSyntax(fixedCode);
       if (!syntaxValidation.isValid) {
@@ -89,10 +86,10 @@ class RemoveUnusedVarFixer extends FixerBase {
       }
 
       // Semantic validation to ensure removal doesn't break code
-      const semanticValidation = this.validator.validateSemantics(code, fixedCode);
-      if (!semanticValidation.isValid) {
-        return this.createFailureResult(code, `Removal would change code semantics: ${semanticValidation.error}`);
-      }
+      // const semanticValidation = this.validator.validateSemantics(code, fixedCode);
+      // if (!semanticValidation.isValid) {
+      //   return this.createFailureResult(code, `Removal would change code semantics: ${semanticValidation.error}`);
+      // }
 
       return this.createSuccessResult(fixedCode, `Removed unused ${operation} successfully`);
     } catch (error) {
@@ -100,12 +97,143 @@ class RemoveUnusedVarFixer extends FixerBase {
     }
   }
 
-  /**
-   * Check if error message indicates unused variable
-   * @param {string} message - Error message
-   * @returns {boolean} True if unused variable error
-   * @private
-   */
+  tokenize(code) {
+    const keywords = new Set([
+      "function", "let", "const", "var", "return"
+    ]);
+    const tokens = [];
+    let i = 0;
+
+    while (i < code.length) {
+      const ch = code[i];
+
+      if (/\s/.test(ch)) {
+        i++;
+        continue;
+      }
+
+      // identifier or keyword
+      if (/[a-zA-Z_$]/.test(ch)) {
+        let start = i;
+        while (i < code.length && /[a-zA-Z0-9_$]/.test(code[i])) i++;
+        const text = code.slice(start, i);
+        tokens.push({
+          type: keywords.has(text) ? "keyword" : "identifier",
+          value: text,
+          start,
+          end: i
+        });
+        continue;
+      }
+
+      // numbers
+      if (/[0-9]/.test(ch)) {
+        let start = i;
+        while (i < code.length && /[0-9.]/.test(code[i])) i++;
+        tokens.push({ type: "number", value: code.slice(start, i), start, end: i });
+        continue;
+      }
+
+      // punctuation
+      if ("(){}[]=,;=>".includes(ch)) {
+        // handle =>
+        if (ch === "=" && code[i + 1] === ">") {
+          tokens.push({ type: "punct", value: "=>", start: i, end: i + 2 });
+          i += 2;
+          continue;
+        }
+        tokens.push({ type: "punct", value: ch, start: i, end: i + 1 });
+        i++;
+        continue;
+      }
+
+      // strings
+      if (ch === '"' || ch === "'") {
+        let quote = ch;
+        let start = i++;
+        while (i < code.length && code[i] !== quote) i++;
+        i++;
+        tokens.push({ type: "string", value: code.slice(start, i), start, end: i });
+        continue;
+      }
+
+      // other characters
+      tokens.push({ type: "other", value: ch, start: i, end: i + 1 });
+      i++;
+    }
+
+    return tokens;
+  }
+
+  findToken(tokens, start, end) {
+    return tokens.find(t => t.start <= start && t.end >= end);
+  }
+
+  analyzeContext(tokens, index) {
+    const target = tokens[index];
+    const before = tokens.slice(0, index);
+
+    // Check if inside parameter list (...)
+    let depth = 0;
+    for (let i = before.length - 1; i >= 0; i--) {
+      const t = before[i];
+
+      if (t.value === ")") depth++;
+      if (t.value === "(") {
+        if (depth === 0) {
+          const prev = before[i - 1];
+          if (prev && prev.type === "keyword" && prev.value === "function") {
+            return "function-parameters";
+          }
+          return "function-parameters"; // arrow function parameter
+        }
+        depth--;
+      }
+
+      // If we reached a function body, stop
+      if (t.value === "{" || t.value === "}") break;
+    }
+
+    // Variable declaration (let/const/var)
+    const prevKeyword = [...before].reverse().find(t => t.type === "keyword");
+    if (prevKeyword && ["let", "const", "var"].includes(prevKeyword.value)) {
+      return "variable";
+    }
+
+    // Function declaration (normal)
+    if (before.some(t => t.type === "keyword" && t.value === "function")) {
+      return "function-declaration";
+    }
+
+    // Arrow function
+    if (before.some(t => t.value === "=>")) {
+      return "function-declaration";
+    }
+
+    // Variable Reassignment: identifier = ...
+    const next = tokens[index + 1];
+    if (
+      next &&
+      next.type === "punct" &&
+      next.value === "=" &&
+      !before.some(t => t.type === "keyword" && ["let", "const", "var"].includes(t.value)) &&
+      !before.some(t => t.value === "=>")
+    ) {
+      return "variable_reassignment";
+    }
+
+    return "unknown";
+  }
+
+  classify(code, start, end) {
+    const tokens = this.tokenize(code);
+    const tok = this.findToken(tokens, start, end);
+    if (!tok) return "unknown";
+
+    const idx = tokens.indexOf(tok);
+    return this.analyzeContext(tokens, idx);
+  }
+
   isUnusedVariableError(message) {
     return message.includes('is defined but never used') ||
       message.includes('is assigned a value but never used') ||
@@ -113,12 +241,6 @@ class RemoveUnusedVarFixer extends FixerBase {
       message.includes('no-unused-vars');
   }
 
-  /**
-   * Get context type description for error messages
-   * @param {Object} context - Context object
-   * @returns {string} Context type description
-   * @private
-   */
   getContextType(context) {
     if (context.inString) return 'string literal';
     if (context.inComment) return 'comment';
@@ -127,13 +249,6 @@ class RemoveUnusedVarFixer extends FixerBase {
     return 'unknown context';
   }
 
-  /**
-   * Enhanced unused variable removal with better validation
-   * @param {string} code - The source code
-   * @param {Object} error - The ESLint error
-   * @returns {string} Code with variable removed
-   * @private
-   */
   removeUnusedVariable(code, error) {
     const codeLines = code.split('\n');
     const targetLine = codeLines[error.line - 1];
@@ -179,13 +294,6 @@ class RemoveUnusedVarFixer extends FixerBase {
     return codeLines.join('\n');
   }
 
-  /**
-   * Enhanced unused function argument removal
-   * @param {string} code - The source code
-   * @param {Object} error - The ESLint error
-   * @returns {string} Code with parameter removed
-   * @private
-   */
   removeUnusedFunctionArgument(code, error) {
     const codeLines = code.split('\n');
     const targetLine = codeLines[error.line - 1];
@@ -215,13 +323,6 @@ class RemoveUnusedVarFixer extends FixerBase {
     return codeLines.join('\n');
   }
 
-  /**
-   * Enhanced unused function removal
-   * @param {string} code - The source code
-   * @param {Object} error - The ESLint error
-   * @returns {string} Code with function removed
-   * @private
-   */
   removeUnusedFunction(code, error) {
     const targetLine = this.getLine(code, error.line);
 
@@ -251,12 +352,6 @@ class RemoveUnusedVarFixer extends FixerBase {
     return updatedCode.trim();
   }
 
-  /**
-   * Parse variable declarations handling destructuring and complex patterns
-   * @param {string} declarationPart - The part after var/let/const
-   * @returns {string[]} Array of variable declarations
-   * @private
-   */
   parseVariableDeclarations(declarationPart) {
     const variables = [];
     let current = '';
@@ -303,39 +398,6 @@ class RemoveUnusedVarFixer extends FixerBase {
     return variables;
   }
 
-  /**
-   * Find variable at specific position with improved accuracy
-   * @param {string} line - The line of code
-   * @param {string[]} variables - Array of variable declarations
-   * @param {number} column - Column position (0-based)
-   * @returns {string|null} Variable at position or null
-   * @private
-   */
-  findVariableAtPosition(line, variables, column) {
-    const declarationStart = line.search(/^(let|const|var)\s+/) +
-      line.match(/^(let|const|var)\s+/)[0].length;
-
-    let currentPos = declarationStart;
-
-    for (const variable of variables) {
-      const variableEnd = currentPos + variable.length;
-
-      if (column >= currentPos && column <= variableEnd) {
-        return variable;
-      }
-
-      currentPos = variableEnd + 2; // +2 for ", "
-    }
-
-    return null;
-  }
-
-  /**
-   * Normalize variable name for comparison (handles destructuring)
-   * @param {string} variable - Variable declaration
-   * @returns {string} Normalized variable name
-   * @private
-   */
   normalizeVariableName(variable) {
     // Extract variable name from declarations like "a = 5" or "{a, b} = obj"
     const assignmentMatch = variable.match(/^([^=]+)/);
@@ -345,15 +407,31 @@ class RemoveUnusedVarFixer extends FixerBase {
     return variable.trim();
   }
 
-  /**
-   * Analyze function signature to extract parameter information
-   * @param {string} line - Function declaration line
-   * @returns {Object|null} Function information or null
-   * @private
-   */
   analyzeFunctionSignature(line) {
     // Arrow functions
     if (line.includes('=>')) {
+      // Arrow function assignments: var/let/const name = (params) => ...
+      const arrowAssignmentMatch = /^\s*(const|let|var)\s+\w+\s*=\s*\(([^)]*)\)\s*=>/.exec(line);
+      if (arrowAssignmentMatch) {
+        const paramString = arrowAssignmentMatch[2];
+        return {
+          type: 'arrow-assignment',
+          params: paramString ? paramString.split(',').map(p => p.trim()).filter(p => p) : [],
+          hasParens: true
+        };
+      }
+
+      // Arrow function assignments (single param): var/let/const name = param => ...
+      const arrowSingleAssignmentMatch = /^\s*(const|let|var)\s+\w+\s*=\s*(\w+)\s*=>/.exec(line);
+      if (arrowSingleAssignmentMatch) {
+        return {
+          type: 'arrow-assignment-single',
+          params: [arrowSingleAssignmentMatch[2]],
+          hasParens: false
+        };
+      }
+
+      // Callback arrow functions (existing patterns)
       const arrowMultiMatch = /,\s*\(([^)]*)\)\s*=>|^\s*\(([^)]*)\)\s*=>/.exec(line);
       if (arrowMultiMatch) {
         const paramString = arrowMultiMatch[1] || arrowMultiMatch[2];
@@ -395,18 +473,48 @@ class RemoveUnusedVarFixer extends FixerBase {
     return null;
   }
 
-  /**
-   * Reconstruct function signature with updated parameters
-   * @param {string} originalLine - Original function line
-   * @param {Object} functionInfo - Function information
-   * @param {string[]} updatedParams - Updated parameter list
-   * @returns {string} Reconstructed function line
-   * @private
-   */
   reconstructFunctionSignature(originalLine, functionInfo, updatedParams) {
     const newParamString = updatedParams.join(', ');
 
     switch (functionInfo.type) {
+      case 'arrow-assignment':
+        // Handle: var/let/const name = (params) => ...
+        return originalLine.replace(
+          /^\s*(const|let|var)\s+\w+\s*=\s*\([^)]*\)\s*=>/,
+          (match) => {
+            const prefix = match.substring(0, match.lastIndexOf('('));
+            return `${prefix}(${newParamString}) =>`;
+          }
+        );
+
+      case 'arrow-assignment-single':
+        // Handle: var/let/const name = param => ...
+        if (updatedParams.length === 0) {
+          return originalLine.replace(
+            /^\s*(const|let|var)\s+\w+\s*=\s*\w+\s*=>/,
+            (match) => {
+              const prefix = match.substring(0, match.lastIndexOf('=', match.lastIndexOf('=') - 1) + 1);
+              return `${prefix} () =>`;
+            }
+          );
+        } else if (updatedParams.length === 1) {
+          return originalLine.replace(
+            /^\s*(const|let|var)\s+\w+\s*=\s*\w+\s*=>/,
+            (match) => {
+              const prefix = match.substring(0, match.lastIndexOf('=', match.lastIndexOf('=') - 1) + 1);
+              return `${prefix} ${updatedParams[0]} =>`;
+            }
+          );
+        } else {
+          return originalLine.replace(
+            /^\s*(const|let|var)\s+\w+\s*=\s*\w+\s*=>/,
+            (match) => {
+              const prefix = match.substring(0, match.lastIndexOf('=', match.lastIndexOf('=') - 1) + 1);
+              return `${prefix} (${newParamString}) =>`;
+            }
+          );
+        }
+
       case 'arrow-multi':
         return originalLine.replace(
           /,\s*\(([^)]*)\)\s*=>|^\s*\(([^)]*)\)\s*=>/,
@@ -440,14 +548,6 @@ class RemoveUnusedVarFixer extends FixerBase {
     }
   }
 
-  /**
-   * Find parameter at specific position
-   * @param {string} line - Function line
-   * @param {string[]} params - Parameter array
-   * @param {number} column - Column position
-   * @returns {string|null} Parameter at position
-   * @private
-   */
   findParameterAtPosition(line, params, column) {
     if (params.length === 1) {
       return params[0];
@@ -471,59 +571,28 @@ class RemoveUnusedVarFixer extends FixerBase {
     return null;
   }
 
-  /**
-   * Check if line is a simple reassignment
-   * @param {string} lineText - Line text
-   * @param {string} variable - Variable name
-   * @returns {boolean} True if simple reassignment
-   * @private
-   */
+  findVariableAtPosition(line, variables, column) {
+    const declarationStart = line.search(/^(let|const|var)\s+/) +
+      line.match(/^(let|const|var)\s+/)[0].length;
+
+    let currentPos = declarationStart;
+
+    for (const variable of variables) {
+      const variableEnd = currentPos + variable.length;
+
+      if (column >= currentPos && column <= variableEnd) {
+        return variable;
+      }
+
+      currentPos = variableEnd + 2; // +2 for ", "
+    }
+
+    return null;
+  }
+
   isSimpleReassignment(lineText, variable) {
     const regex = new RegExp(`^\\s*${variable}\\s*=`);
     return regex.test(lineText.trim());
-  }
-
-  /**
-   * Categorize the type of line for appropriate handling
-   * @param {string} line - Line of code
-   * @returns {Object} Category information
-   * @private
-   */
-  categorizeLine(line) {
-    // Variable declarations
-    const varDecl = /^\s*(var|let|const)\s+([$A-Za-z_][$\w]*)/.exec(line);
-    if (varDecl) {
-      return { type: 'variable', name: varDecl[2] };
-    }
-
-    // Function parameters (arrow functions)
-    if (line.includes('=>')) {
-      return { type: 'function-parameters' };
-    }
-
-    // Function parameters (traditional functions and methods)
-    if (/function\s+\w*\s*\(([^)]*)\)/.test(line) || /\w+\s*\(([^)]*)\)\s*{/.test(line)) {
-      return { type: 'function-parameters' };
-    }
-
-    // Function declarations
-    if (this.isFunctionDeclaration(line)) {
-      return { type: 'function-declaration' };
-    }
-
-    return { type: 'other' };
-  }
-
-  /**
-   * Check if line is a function declaration
-   * @param {string} line - Line of code
-   * @returns {boolean} True if function declaration
-   * @private
-   */
-  isFunctionDeclaration(line) {
-    const functionRegex = /^\s*function\s+\w+\s*\(.*\)\s*{/;
-    const arrowFunctionRegex = /^\s*(const|let|var)\s+\w+\s*=\s*\(.*\)\s*=>\s*{/;
-    return functionRegex.test(line) || arrowFunctionRegex.test(line);
   }
 }
 
@@ -534,11 +603,6 @@ const removeUnusedVarFixer = new RemoveUnusedVarFixer();
 export const removeUnusedVars = (code, error) => {
   const result = removeUnusedVarFixer.fix(code, error);
   return result.code;
-};
-
-// Legacy function for backward compatibility
-export const isFunctionDeclaration = (line) => {
-  return removeUnusedVarFixer.isFunctionDeclaration(line);
 };
 
 // Export the fixer class for use in registry

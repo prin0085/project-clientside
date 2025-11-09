@@ -11,9 +11,9 @@ import './FixStatusIndicator.css';
  * 
  * Requirements: 5.1, 5.2
  */
-const FixStatusIndicator = ({ 
-  isFixable, 
-  isApplying = false, 
+const FixStatusIndicator = ({
+  isFixable,
+  isApplying = false,
   fixResult = null,
   ruleId,
   severity = 'error'
@@ -32,14 +32,14 @@ const FixStatusIndicator = ({
     if (fixResult) {
       if (fixResult.success) {
         return {
-          icon: '✅',
+          icon: '',
           className: 'fix-status-success',
           label: 'Fixed successfully',
           color: '#4CAF50'
         };
       } else {
         return {
-          icon: '❌',
+          icon: '',
           className: 'fix-status-error',
           label: `Fix failed: ${fixResult.message || 'Unknown error'}`,
           color: '#f44336'
@@ -49,7 +49,7 @@ const FixStatusIndicator = ({
 
     if (isFixable) {
       return {
-        icon: '🔧',
+        icon: '',
         className: 'fix-status-fixable',
         label: 'Auto-fixable',
         color: '#4CAF50'
@@ -57,7 +57,7 @@ const FixStatusIndicator = ({
     }
 
     return {
-      icon: '⚠️',
+      icon: '',
       className: 'fix-status-not-fixable',
       label: 'Manual fix required',
       color: '#ff9800'
@@ -67,7 +67,7 @@ const FixStatusIndicator = ({
   const statusInfo = getStatusInfo();
 
   return (
-    <div 
+    <div
       className={`fix-status-indicator ${statusInfo.className}`}
       title={statusInfo.label}
       style={{ '--status-color': statusInfo.color }}
