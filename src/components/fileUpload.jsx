@@ -15,20 +15,24 @@ import { noTrailingSpaces } from './codeFixer/noTrailingSpaces';
 import { eolLast } from './codeFixer/eolLast';
 import { semi } from './codeFixer/semi';
 import { quotes } from './codeFixer/quotes';
+import { MdClose } from 'react-icons/md';
 
 const FileUpload = () => {
   const [files, setFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
+
   const [selectedFileContent, setSelectedFileContent] = useState({});
+  const [selectFileEditContent, setSelectFileEditContent] = useState({});
+  const [editedFiles, setEditedFiles] = useState([]);
+
   const [selectedLintContent, setSelectedLintContent] = useState(null);
   const [lintingResults, setLintingResults] = useState([]);
-  const [editedFiles, setEditedFiles] = useState([]);
+
   const [expandedError, setExpandedError] = useState(null);
-  const [batchProcessing, setBatchProcessing] = useState(false);
-  const [batchProgress, setBatchProgress] = useState(null);
+  // const [batchProgress, setBatchProgress] = useState(null);
   const [applyingFixes, setApplyingFixes] = useState(new Set());
   const [fixResults, setFixResults] = useState(new Map());
   const [appliedFixes, setAppliedFixes] = useState([]);
+
   const [originalCodeForDiff, setOriginalCodeForDiff] = useState('');
 
   const fileInputRef = useRef(null);
@@ -74,6 +78,15 @@ const FileUpload = () => {
     initializeFixers();
   }, []);
 
+  useEffect(() => {
+    if (selectedFileContent?.source === undefined) { return; }
+
+    const { editor } = monacoObjects.current;
+    const model = editor.getModel();
+
+    model.setValue(selectedFileContent.source);
+  }, [selectedFileContent.source]);
+
   // Use registry-based approach for checking if a rule is fixable
   const isFixAble = (ruleId) => {
     // First check the registry
@@ -95,147 +108,6 @@ const FileUpload = () => {
     return existingFixableRules.includes(ruleId);
   };
 
-  // Batch fix functionality
-  const applyBatchFix = async () => {
-    if (!selectedLintContent?.lintResult?.messages || batchProcessing) {
-      return;
-    }
-
-    const fixableErrors = selectedLintContent.lintResult.messages.filter(message =>
-      isFixAble(message.ruleId)
-    );
-
-    if (fixableErrors.length === 0) {
-      alert('No fixable errors found.');
-      return;
-    }
-
-    setBatchProcessing(true);
-    setBatchProgress({
-      current: 0,
-      total: fixableErrors.length,
-      currentRule: '',
-      phase: 'analyzing',
-      successCount: 0,
-      failureCount: 0,
-      message: 'Preparing batch fix...'
-    });
-
-    try {
-      const batchProcessor = new BatchFixProcessor({
-        fileName: selectedFileContent.name,
-        relintAfterEachFix: true
-      });
-
-      const batchResult = await batchProcessor.processBatch(
-        selectedFileContent.source,
-        fixableErrors,
-        (progress) => {
-          setBatchProgress(progress);
-        }
-      );
-
-      if (batchResult.success) {
-        // Update the code in the editor
-        setSelectedFileContent((prev) => ({
-          ...prev,
-          source: batchResult.finalCode,
-        }));
-
-        // Update the edited files
-        setEditedFiles((prevFiles) =>
-          prevFiles.map((file) =>
-            file.name === selectedFileContent.name
-              ? { ...file, source: batchResult.finalCode }
-              : file
-          )
-        );
-
-        // Re-lint the code to get updated results
-        try {
-          const codeBlob = new Blob([batchResult.finalCode], { type: "text/plain" });
-          const codeFile = new File([codeBlob], selectedFileContent.name, { type: "text/plain" });
-          const formData = new FormData();
-          formData.append("files", codeFile);
-
-          const response = await axios.post(
-            "http://localhost:3001/lint",
-            formData,
-            {
-              headers: { "Content-Type": "multipart/form-data" },
-            }
-          );
-
-          // Update lint results
-          setSelectedLintContent((prev) => ({
-            ...prev,
-            lintResult: response.data.lintResult,
-          }));
-
-          setLintingResults((prevLint) =>
-            prevLint.map((file) =>
-              file.originalname === selectedFileContent.name
-                ? { ...file, lintResult: response.data.lintResult }
-                : file
-            )
-          );
-
-          // Add all successful fixes to applied fixes for highlighting
-          if (batchResult.appliedFixes && batchResult.appliedFixes.length > 0) {
-            const batchAppliedFixes = batchResult.appliedFixes.map(fix => ({
-              ruleId: fix.ruleId,
-              line: fix.line,
-              column: fix.column,
-              endLine: fix.endLine,
-              endColumn: fix.endColumn,
-              message: fix.message,
-              timestamp: new Date()
-            }));
-            setAppliedFixes(prev => [...prev, ...batchAppliedFixes]);
-          }
-
-          // Show success message
-          const successMessage = `Batch fix completed successfully!\n` +
-            `Fixed: ${batchResult.fixedErrors} errors\n` +
-            `Failed: ${batchResult.failedFixes.length} errors\n` +
-            `Processing time: ${(batchResult.processingTime / 1000).toFixed(2)}s`;
-
-          alert(successMessage);
-
-        } catch (relintError) {
-          console.error("Error re-linting after batch fix:", relintError);
-          alert("Batch fix applied but re-linting failed. Please refresh to see updated results.");
-        }
-
-      } else {
-        alert(`Batch fix failed: ${batchResult.error}`);
-      }
-
-    } catch (error) {
-      console.error("Batch fix error:", error);
-      alert(`Batch fix failed: ${error.message}`);
-    } finally {
-      setBatchProcessing(false);
-      setBatchProgress(null);
-    }
-  };
-
-  // useEffect(() => {
-  //   if (!monacoObjects.current) return;
-  //   const { monaco, editor } = monacoObjects.current;
-  //   const r = new monaco.Range(1, 1, 1, 1);
-  //   console.log(
-  //     editor.createDecorationsCollection([
-  //       {
-  //         range: r,
-  //         options: {
-  //           inlineClassName: "myInlineDecoration",
-  //         },
-  //       },
-  //     ])
-  //   );
-  // }, [lintingResults]);
-
   const handleFileChange = async (event) => {
     if (Array.from(event.target.files).length > 0) {
       const newFiles = Array.from(event.target.files);
@@ -245,81 +117,55 @@ const FileUpload = () => {
 
   const goToLine = (lineNumber) => {
     if (monacoObjects.current?.editor) {
-      console.log(monacoObjects.current);
       monacoObjects.current.editor.revealLineInCenter(lineNumber);
       monacoObjects.current.editor.setPosition({ lineNumber, column: 1 });
       monacoObjects.current.editor.focus();
     }
   }
 
-  const handleUpload = async () => {
-    if (files.length === 0) {
-      alert("Please select files first.");
-      return;
-    }
-
+  const handleUpload = async (file) => {
+    setExpandedError(null);
     const formData = new FormData();
 
     // If there's a selected file with current editor content, use that
-    if (selectedFileContent.name && selectedFileContent.source) {
-      const codeBlob = new Blob([selectedFileContent.source], { type: "text/plain" });
-      const codeFile = new File([codeBlob], selectedFileContent.name, { type: "text/plain" });
+    if (file.name && file.source) {
+      const codeBlob = new Blob([file.source], { type: "text/plain" });
+      const codeFile = new File([codeBlob], file.name, { type: "text/plain" });
       formData.append("files", codeFile);
-    } else {
-      // Otherwise, use original files
-      for (let i = 0; i < files.length; i++) {
-        formData.append("files", files[i]);
-      }
     }
-
-    setUploading(true);
 
     try {
       const response = await axios.post(
-        "http://localhost:3001/upload",
+        "http://localhost:3001/lint",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      console.log("Upload Successful:", response.data);
-
-      setLintingResults(response.data); // Store linting results
-
-      const newSource = response.data[0].lintResult.source || response.data[0].lintResult.output;
-      const newFile = {
-        name: response.data[0].originalname,
-        source: newSource,
-      };
-      setSelectedFileContent(newFile);
-      setEditedFiles((prevFiles) =>
-        prevFiles.map((file) =>
-          file.name === selectedFileContent.name ? { ...file, source: newSource } : file
-        )
-      );
+      storeLintResult(response.data);
     } catch (error) {
       console.error("Error uploading file:", error);
     }
-    setUploading(false);
   };
 
   const handleFileClick = (file) => {
+    if (file.name === selectedFileContent.name) { return; }
+
     // Clear applied fixes and diff highlighting when switching files
     setAppliedFixes([]);
     setOriginalCodeForDiff('');
+    // console.log(files);
 
-    console.log(files);
     const selectedFile = editedFiles.find((w) => w.name === file.name);
     if (selectedFile) {
-      const fileLintResults = lintingResults.find(
-        (result) => result.originalname === file.name
-      );
-      setSelectedLintContent(fileLintResults || null);
-      setSelectedFileContent({
+      const newFile = {
         name: file.name,
         source: selectedFile.source,
-      });
+      };
+
+      onSelectFileClick(newFile);
+      handleUpload(newFile);
     } else {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -328,22 +174,48 @@ const FileUpload = () => {
           source: e.target.result,
         };
 
-        setSelectedFileContent(newFile);
-
-        const fileLintResults = lintingResults.find(
-          (result) => result.originalname === file.name
-        );
-
-        setSelectedLintContent(fileLintResults || null);
-        setEditedFiles((prev) => [...prev, newFile]);
+        onSelectFileClick(newFile);
+        handleUpload(newFile);
       };
-      console.log(file);
+
       reader.readAsText(file);
     }
   };
 
+  const storeLintResult = (value) => {
+    setLintingResults((prevLint) => {
+      const exists = prevLint.some(item => item.originalname === value.originalname);
+      if (exists) {
+        return prevLint.map((file) =>
+          file.originalname === selectedFileContent.name ? { ...file, lintResult: value.lintResult } : file
+        );
+      } else {
+        return [...prevLint, value];
+      }
+    });
+
+    setSelectedLintContent(value);
+  }
+
+  const onSelectFileClick = (file) => {
+    setSelectedFileContent(file);
+    setSelectFileEditContent(file);
+    setEditedFiles((prev) => {
+      const exists = prev.some(item => item.name === file.name);
+      if (exists) {
+        // update the existing item
+        return prev.map(item =>
+          item.name === file.name ? { ...item, source: file.source } : item
+        );
+      } else {
+        // add new item
+        return [...prev, file];
+      }
+    });
+  }
+
   const applyFix = async (message) => {
-    if (!selectedFileContent.source) return;
+    if (!selectFileEditContent.source) return;
 
     const fixKey = `${message.ruleId}-${message.line}-${message.column}`;
 
@@ -352,11 +224,12 @@ const FileUpload = () => {
     setFixResults(prev => new Map(prev.set(fixKey, null)));
 
     // Store original code for diff highlighting
+    const editedFile = editedFiles.find(w => w.name == selectFileEditContent.name);
     if (!originalCodeForDiff) {
-      setOriginalCodeForDiff(selectedFileContent.source);
+      setOriginalCodeForDiff(selectFileEditContent.source);
     }
 
-    let updatedCode = selectedFileContent.source;
+    let updatedCode = selectFileEditContent.source;
 
     // Try to get fixer from registry first
     const fixer = fixerRegistry.getFixer(message.ruleId);
@@ -472,7 +345,7 @@ const FileUpload = () => {
 
     try {
       const codeBlob = new Blob([updatedCode], { type: "text/plain" });
-      const codeFile = new File([codeBlob], selectedFileContent.name, { type: "text/plain" });
+      const codeFile = new File([codeBlob], selectFileEditContent.name, { type: "text/plain" });
       const formData = new FormData();
       formData.append("files", codeFile);
       const response = await axios.post(
@@ -483,34 +356,13 @@ const FileUpload = () => {
         }
       );
 
-      const codeLines = response.data.lintResult.source.split('\n');
-      const targetLine = codeLines[message.line - 1];
-      // update source code in monoeditor
-      setSelectedFileContent((prev) => ({
-        ...prev,
-        source: response.data.lintResult.source,
-      }));
+      const newFile = {
+        name: selectedFileContent.name,
+        source: response.data.lintResult.source
+      };
 
-      // update source code
-      setEditedFiles((prevFiles) =>
-        prevFiles.map((file) =>
-          file.name === selectedFileContent.name ? { ...file, source: response.data.lintResult.source } : file
-        )
-      );
-
-      console.log(response.data.lintResult);
-      // update lint result that display right now
-      setSelectedLintContent((prev) => ({
-        ...prev,
-        lintResult: response.data.lintResult,
-      }));
-
-      // update lint result for that file
-      setLintingResults((prevLint) =>
-        prevLint.map((file) =>
-          file.originalname === selectedFileContent.name ? { ...file, lintResult: response.data.lintResult } : file
-        )
-      );
+      onSelectFileClick(newFile);
+      handleUpload(newFile);
 
       // Highlight the applied fix in the editor
       if (monacoObjects.current?.editor?.codeHighlighter) {
@@ -544,17 +396,12 @@ const FileUpload = () => {
   };
 
   const downloadModifiedFile = () => {
-    // if (!selectedFileContent.source) {
-    //   alert("No modified content available for download.");
-    //   return;
-    // }
-
-    const blob = new Blob([selectedFileContent.source], {
+    const blob = new Blob([selectFileEditContent.source], {
       type: "text/javascript",
     });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = selectedFileContent.name.replace(".js", "_fixed.js"); // Append _fixed
+    link.download = selectFileEditContent.name.replace(".js", "_fixed.js"); // Append _fixed
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -568,20 +415,72 @@ const FileUpload = () => {
     return ruleDescriptions.find((rule) => rule.ruleId === ruleId);
   };
 
+  const handleRemoveFile = (fileToRemove, event) => {
+    event.stopPropagation(); // Prevent triggering file click
+
+    // Remove from files list
+    setFiles((prevFiles) => prevFiles.filter((file) => file.name !== fileToRemove.name));
+
+    // Remove from edited files
+    setEditedFiles((prevFiles) => prevFiles.filter((file) => file.name !== fileToRemove.name));
+
+    // Remove from linting results
+    setLintingResults((prevResults) => prevResults.filter((result) => result.originalname !== fileToRemove.name));
+
+    // Clear selected file if it's the one being removed
+    if (selectedFileContent.name === fileToRemove.name) {
+      setSelectedFileContent(prev => ({ ...prev, source: "" }));
+      setSelectedFileContent({});
+      setSelectedLintContent(null);
+      setAppliedFixes([]);
+      setOriginalCodeForDiff('');
+    }
+  };
+
   return (
     <div className="container">
       <div className="file-upload-container height-100">
         <div className="file-list">
-          <h3>Selected Files:</h3>
+          <div className="button-container">
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+              ref={fileInputRef}
+            />
+            <button
+              onClick={() => fileInputRef.current.click()}
+              className="choose-file-button"
+            >
+              เลือกไฟล์
+            </button>
+            {/* <button
+              onClick={handleUpload}
+              disabled={uploading}
+              className="upload-button"
+            >
+              {uploading ? "Uploading..." : "Upload"}
+            </button> */}
+          </div>
+
           <ul>
             {files.map((file, index) => (
-              <li key={index}>
+              <li key={index} className={`file-list-item ${selectedFileContent.name == file.name ? "active" : ""
+                }`}>
                 <button
                   onClick={() => handleFileClick(file)}
-                  className={`file-button ${selectedFileContent.name == file.name ? "active" : ""
-                    }`}
+                  className="file-button"
                 >
                   {file.name}
+                </button>
+                <button
+                  onClick={(e) => handleRemoveFile(file, e)}
+                  className="remove-file-button"
+                  title="Remove file"
+                  aria-label={`Remove ${file.name}`}
+                >
+                  <MdClose />
                 </button>
               </li>
             ))}
@@ -593,9 +492,9 @@ const FileUpload = () => {
             height="100%"
             theme="vs-dark"
             defaultLanguage="javascript"
-            value={selectedFileContent.source}
+            value={selectFileEditContent.source}
             onChange={(value) => {
-              setSelectedFileContent((prev) => ({ ...prev, source: value }));
+              setSelectFileEditContent((prev) => ({ ...prev, source: value }));
               setEditedFiles((prevFiles) =>
                 prevFiles.map((file) =>
                   file.name === selectedFileContent.name ? { ...file, source: value } : file
@@ -636,6 +535,15 @@ const FileUpload = () => {
             <h3>Linting Results: {selectedLintContent?.lintResult?.errorCount | 0}</h3>
             <div className="flex gap-2">
               {selectedLintContent && (
+                <button onClick={() => handleUpload({
+                  name: selectFileEditContent.name,
+                  source: selectFileEditContent.source
+                })}>
+                  Analyze
+                </button>
+              )}
+
+              {selectedLintContent && (
                 <button onClick={() => downloadModifiedFile(selectedLintContent)}>
                   Download Fixed File
                 </button>
@@ -644,7 +552,7 @@ const FileUpload = () => {
           </div>
 
           {/* Enhanced Batch Fix Controls */}
-          {selectedLintContent?.lintResult?.messages && (
+          {/* {selectedLintContent?.lintResult?.messages && (
             <BatchFixControls
               fixableCount={selectedLintContent.lintResult.messages.filter(msg => isFixAble(msg.ruleId)).length}
               totalCount={selectedLintContent.lintResult.messages.length}
@@ -653,7 +561,7 @@ const FileUpload = () => {
               batchProgress={batchProgress}
               disabled={false}
             />
-          )}
+          )} */}
 
           {selectedLintContent?.lintResult?.errorCount > 0 ? (
             <div className="linting-results-container">
@@ -727,29 +635,6 @@ const FileUpload = () => {
             <p>No linting errors found.</p>
           )}
         </div>
-      </div>
-
-      <div className="button-container">
-        <input
-          type="file"
-          multiple
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-          ref={fileInputRef}
-        />
-        <button
-          onClick={() => fileInputRef.current.click()}
-          className="choose-file-button"
-        >
-          Choose File
-        </button>
-        <button
-          onClick={handleUpload}
-          disabled={uploading}
-          className="upload-button"
-        >
-          {uploading ? "Uploading..." : "Upload"}
-        </button>
       </div>
     </div >
   );
