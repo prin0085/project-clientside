@@ -357,3 +357,4 @@ class IndentFixer extends FixerBase {
 }
 
 export default IndentFixer;
+export { IndentFixer };

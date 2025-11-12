@@ -379,3 +379,4 @@ class CurlyFixer extends FixerBase {
 }
 
 export default CurlyFixer;
+export { CurlyFixer };

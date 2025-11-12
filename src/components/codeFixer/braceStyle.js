@@ -320,3 +320,4 @@ class BraceStyleFixer extends FixerBase {
 }
 
 export default BraceStyleFixer;
+export { BraceStyleFixer };

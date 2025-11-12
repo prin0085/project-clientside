@@ -284,3 +284,4 @@ class NoVarFixer extends FixerBase {
 }
 
 export default NoVarFixer;
+export { NoVarFixer };

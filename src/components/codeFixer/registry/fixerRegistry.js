@@ -51,7 +51,8 @@ class FixerRegistry {
     }
 
     if (this.fixers.has(fixer.ruleId)) {
-      throw new Error(`Fixer for rule '${fixer.ruleId}' is already registered`);
+      console.log(`Fixer for rule '${fixer.ruleId}' is already registered, skipping`);
+      return;
     }
 
     this.fixers.set(fixer.ruleId, fixer);

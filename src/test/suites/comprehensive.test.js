@@ -12,6 +12,9 @@ import { NoConsoleFixer } from '../../components/codeFixer/noConsole.js'
 import { CurlyFixer } from '../../components/codeFixer/curly.js'
 import { BraceStyleFixer } from '../../components/codeFixer/braceStyle.js'
 import { SpaceBeforeBlocksFixer } from '../../components/codeFixer/spaceBeforeBlocks.js'
+import { NoPlusPlusFixer } from '../../components/codeFixer/noPlusplus.js'
+import { PreferTemplateFixer } from '../../components/codeFixer/preferTemplate.js'
+import { PreferForOfFixer } from '../../components/codeFixer/preferForOf.js'
 import { FixerRegistry } from '../../components/codeFixer/registry/fixerRegistry.js'
 
 describe('Comprehensive ESLint Auto-Fix Test Suite', () => {
@@ -30,6 +33,9 @@ describe('Comprehensive ESLint Auto-Fix Test Suite', () => {
     fixerRegistry.register(new CurlyFixer())
     fixerRegistry.register(new BraceStyleFixer())
     fixerRegistry.register(new SpaceBeforeBlocksFixer())
+    fixerRegistry.register(new NoPlusPlusFixer())
+    fixerRegistry.register(new PreferTemplateFixer())
+    fixerRegistry.register(new PreferForOfFixer())
   })
 
   describe('Individual Fixer Tests', () => {
@@ -41,7 +47,10 @@ describe('Comprehensive ESLint Auto-Fix Test Suite', () => {
       { class: NoConsoleFixer, ruleId: 'no-console' },
       { class: CurlyFixer, ruleId: 'curly' },
       { class: BraceStyleFixer, ruleId: 'brace-style' },
-      { class: SpaceBeforeBlocksFixer, ruleId: 'space-before-blocks' }
+      { class: SpaceBeforeBlocksFixer, ruleId: 'space-before-blocks' },
+      { class: NoPlusPlusFixer, ruleId: 'no-plusplus' },
+      { class: PreferTemplateFixer, ruleId: 'prefer-template' },
+      { class: PreferForOfFixer, ruleId: 'prefer-for-of' }
     ]
 
     fixerClasses.forEach(({ class: FixerClass, ruleId }) => {

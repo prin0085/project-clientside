@@ -305,3 +305,4 @@ class SpaceBeforeBlocksFixer extends FixerBase {
 }
 
 export default SpaceBeforeBlocksFixer;
+export { SpaceBeforeBlocksFixer };

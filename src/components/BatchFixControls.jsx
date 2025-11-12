@@ -49,8 +49,7 @@ const BatchFixControls = ({
               Processing...
             </>
           ) : (
-            <>
-              <span className="fix-icon">🔧</span>
+            <> 
               Fix All ({fixableCount})
             </>
           )}

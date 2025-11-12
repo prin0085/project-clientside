@@ -302,3 +302,4 @@ class CommaDangleFixer extends FixerBase {
 }
 
 export default CommaDangleFixer;
+export { CommaDangleFixer };

@@ -28,5 +28,7 @@ module.exports = {
         "react"
     ],
     "rules": {
+        "prefer-template": "warn",
+        "no-plusplus": "warn"
     }
 }

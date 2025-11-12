@@ -339,3 +339,4 @@ class PreferConstFixer extends FixerBase {
 }
 
 export default PreferConstFixer;
+export { PreferConstFixer };

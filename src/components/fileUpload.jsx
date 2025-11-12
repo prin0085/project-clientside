@@ -4,9 +4,8 @@ import Editor from "@monaco-editor/react";
 import "./fileUpload.css";
 import ruleDescriptions from "../Utilities/RuleDescription.json";
 import { fixerRegistry } from './codeFixer/registry/fixerRegistry';
-import BatchFixProcessor from './codeFixer/shared/batchFixProcessor';
+import { registerAllFixers } from './codeFixer/registry/registerAllFixers';
 import FixStatusIndicator from './FixStatusIndicator';
-import BatchFixControls from './BatchFixControls';
 import CodeHighlighter from './CodeHighlighter';
 import { removeUnusedVars } from './codeFixer/removeUnusedVar'
 import { eqeqeq } from "./codeFixer/eqeqeq";
@@ -46,6 +45,9 @@ const FileUpload = () => {
   useEffect(() => {
     const initializeFixers = async () => {
       try {
+        // Register all new fixers
+        registerAllFixers();
+
         // Auto-discover and register all fixers
         await fixerRegistry.autoDiscoverFixers();
 
@@ -70,6 +72,24 @@ const FileUpload = () => {
         });
 
         console.log('Fixer registry initialized successfully');
+
+        // Make debug function available globally
+        window.debugFixers = () => {
+          const fixableRules = fixerRegistry.getFixableRules();
+          console.log('=== Fixer Registry Debug ===');
+          console.log('Total registered fixers:', fixableRules.length);
+          console.log('Fixable rules:', fixableRules);
+
+          // Test each fixer
+          fixableRules.forEach(ruleId => {
+            const fixer = fixerRegistry.getFixer(ruleId);
+            console.log(`- ${ruleId}:`, fixer ? 'OK' : 'MISSING');
+          });
+
+          return fixableRules;
+        };
+
+        console.log('Debug: Type window.debugFixers() in console to see all registered fixers');
       } catch (error) {
         console.error('Failed to initialize fixer registry:', error);
       }
@@ -90,7 +110,9 @@ const FileUpload = () => {
   // Use registry-based approach for checking if a rule is fixable
   const isFixAble = (ruleId) => {
     // First check the registry
-    if (fixerRegistry.isFixable(ruleId)) {
+    const isInRegistry = fixerRegistry.isFixable(ruleId);
+
+    if (isInRegistry) {
       return true;
     }
 
@@ -102,10 +124,18 @@ const FileUpload = () => {
       'no-trailing-spaces',
       'eol-last',
       'semi',
-      'quotes'
+      'quotes',
     ];
 
-    return existingFixableRules.includes(ruleId);
+    const isInFallback = existingFixableRules.includes(ruleId);
+
+    if (isInFallback) {
+      console.log(`Rule ${ruleId} is fixable (from fallback)`);
+    } else {
+      console.log(`Rule ${ruleId} is NOT fixable`);
+    }
+
+    return isInFallback;
   };
 
   const handleFileChange = async (event) => {
@@ -144,6 +174,16 @@ const FileUpload = () => {
       );
 
       storeLintResult(response.data);
+      console.log(response.data);
+
+      for (const message of response.data.lintResult.messages) {
+        message.ruleId = message.ruleId?.replace(/^@typescript-eslint\//, "") || "(no rule)";
+      }
+      const newFile = {
+        name: file.name,
+        source: response.data.lintResult.output || response.data.lintResult.source
+      };
+      onSelectFileClick(newFile);
     } catch (error) {
       console.error("Error uploading file:", error);
     }
@@ -152,10 +192,8 @@ const FileUpload = () => {
   const handleFileClick = (file) => {
     if (file.name === selectedFileContent.name) { return; }
 
-    // Clear applied fixes and diff highlighting when switching files
     setAppliedFixes([]);
     setOriginalCodeForDiff('');
-    // console.log(files);
 
     const selectedFile = editedFiles.find((w) => w.name === file.name);
     if (selectedFile) {
@@ -164,7 +202,7 @@ const FileUpload = () => {
         source: selectedFile.source,
       };
 
-      onSelectFileClick(newFile);
+      setSelectedFileContent(newFile);
       handleUpload(newFile);
     } else {
       const reader = new FileReader();
@@ -174,7 +212,7 @@ const FileUpload = () => {
           source: e.target.result,
         };
 
-        onSelectFileClick(newFile);
+        setSelectedFileContent(newFile);
         handleUpload(newFile);
       };
 
@@ -183,22 +221,10 @@ const FileUpload = () => {
   };
 
   const storeLintResult = (value) => {
-    setLintingResults((prevLint) => {
-      const exists = prevLint.some(item => item.originalname === value.originalname);
-      if (exists) {
-        return prevLint.map((file) =>
-          file.originalname === selectedFileContent.name ? { ...file, lintResult: value.lintResult } : file
-        );
-      } else {
-        return [...prevLint, value];
-      }
-    });
-
     setSelectedLintContent(value);
   }
 
   const onSelectFileClick = (file) => {
-    setSelectedFileContent(file);
     setSelectFileEditContent(file);
     setEditedFiles((prev) => {
       const exists = prev.some(item => item.name === file.name);
@@ -223,8 +249,7 @@ const FileUpload = () => {
     setApplyingFixes(prev => new Set([...prev, fixKey]));
     setFixResults(prev => new Map(prev.set(fixKey, null)));
 
-    // Store original code for diff highlighting
-    const editedFile = editedFiles.find(w => w.name == selectFileEditContent.name);
+    // Store original code for diff highlighting 
     if (!originalCodeForDiff) {
       setOriginalCodeForDiff(selectFileEditContent.source);
     }
@@ -344,24 +369,24 @@ const FileUpload = () => {
     }
 
     try {
-      const codeBlob = new Blob([updatedCode], { type: "text/plain" });
-      const codeFile = new File([codeBlob], selectFileEditContent.name, { type: "text/plain" });
-      const formData = new FormData();
-      formData.append("files", codeFile);
-      const response = await axios.post(
-        "http://localhost:3001/lint",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      // const codeBlob = new Blob([updatedCode], { type: "text/plain" });
+      // const codeFile = new File([codeBlob], selectFileEditContent.name, { type: "text/plain" });
+      // const formData = new FormData();
+      // formData.append("files", codeFile);
+      // const response = await axios.post(
+      //   "http://localhost:3001/lint",
+      //   formData,
+      //   {
+      //     headers: { "Content-Type": "multipart/form-data" },
+      //   }
+      // );
 
       const newFile = {
         name: selectedFileContent.name,
-        source: response.data.lintResult.source
+        source: updatedCode
       };
 
-      onSelectFileClick(newFile);
+      // onSelectFileClick(newFile);
       handleUpload(newFile);
 
       // Highlight the applied fix in the editor
@@ -425,7 +450,7 @@ const FileUpload = () => {
     setEditedFiles((prevFiles) => prevFiles.filter((file) => file.name !== fileToRemove.name));
 
     // Remove from linting results
-    setLintingResults((prevResults) => prevResults.filter((result) => result.originalname !== fileToRemove.name));
+    // setLintingResults((prevResults) => prevResults.filter((result) => result.originalname !== fileToRemove.name));
 
     // Clear selected file if it's the one being removed
     if (selectedFileContent.name === fileToRemove.name) {

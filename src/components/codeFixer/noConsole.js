@@ -340,3 +340,4 @@ class NoConsoleFixer extends FixerBase {
 }
 
 export default NoConsoleFixer;
+export { NoConsoleFixer };
