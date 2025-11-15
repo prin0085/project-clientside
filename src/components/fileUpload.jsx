@@ -237,7 +237,7 @@ const FileUpload = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3001/lint",
+        "https://server-yhjj.onrender.com/lint",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
