@@ -80,10 +80,10 @@ class RemoveUnusedVarFixer extends FixerBase {
       }
 
       // Enhanced validation
-      const syntaxValidation = this.validator.validateSyntax(fixedCode);
-      if (!syntaxValidation.isValid) {
-        return this.createFailureResult(code, `Removal would create syntax error: ${syntaxValidation.error}`);
-      }
+      // const syntaxValidation = this.validator.validateSyntax(fixedCode);
+      // if (!syntaxValidation.isValid) {
+      //   return this.createFailureResult(code, `Removal would create syntax error: ${syntaxValidation.error}`);
+      // }
 
       // Semantic validation to ensure removal doesn't break code
       // const semanticValidation = this.validator.validateSemantics(code, fixedCode);

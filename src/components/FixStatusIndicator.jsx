@@ -72,9 +72,6 @@ const FixStatusIndicator = ({
       title={statusInfo.label}
       style={{ '--status-color': statusInfo.color }}
     >
-      {/* <span className="fix-status-icon" role="img" aria-label={statusInfo.label}>
-        {statusInfo.icon}
-      </span> */}
       <span className="fix-status-text">
         {statusInfo.label}
       </span>

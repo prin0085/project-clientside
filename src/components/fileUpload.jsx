@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Editor from "@monaco-editor/react";
 import "./fileUpload.css";
 import ruleDescriptions from "../Utilities/RuleDescription.json";
 import { fixerRegistry } from './codeFixer/registry/fixerRegistry';
 import { registerAllFixers } from './codeFixer/registry/registerAllFixers';
-import FixStatusIndicator from './FixStatusIndicator';
 import CodeHighlighter from './CodeHighlighter';
 import { removeUnusedVars } from './codeFixer/removeUnusedVar'
 import { eqeqeq } from "./codeFixer/eqeqeq";
@@ -14,9 +14,11 @@ import { noTrailingSpaces } from './codeFixer/noTrailingSpaces';
 import { eolLast } from './codeFixer/eolLast';
 import { semi } from './codeFixer/semi';
 import { quotes } from './codeFixer/quotes';
-import { MdClose } from 'react-icons/md';
+import { MdBuild, MdClose } from 'react-icons/md';
 
 const FileUpload = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [files, setFiles] = useState([]);
 
   const [selectedFileContent, setSelectedFileContent] = useState({});
@@ -24,7 +26,6 @@ const FileUpload = () => {
   const [editedFiles, setEditedFiles] = useState([]);
 
   const [selectedLintContent, setSelectedLintContent] = useState(null);
-  const [lintingResults, setLintingResults] = useState([]);
 
   const [expandedError, setExpandedError] = useState(null);
   // const [batchProgress, setBatchProgress] = useState(null);
@@ -36,10 +37,22 @@ const FileUpload = () => {
 
   const fileInputRef = useRef(null);
   const monacoObjects = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const editorDidMount = (editor, monaco) => {
     monacoObjects.current = { editor, monaco };
   };
+
+  // Handle files from landing page
+  useEffect(() => {
+    if (location.state?.files) {
+      const uploadedFiles = location.state.files;
+      setFiles(uploadedFiles);
+
+      // Clear the location state to prevent re-adding files on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   // Initialize fixer registry on component mount
   useEffect(() => {
@@ -138,11 +151,69 @@ const FileUpload = () => {
     return isInFallback;
   };
 
-  const handleFileChange = async (event) => {
-    if (Array.from(event.target.files).length > 0) {
-      const newFiles = Array.from(event.target.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+  const processFiles = (fileList) => {
+    if (fileList.length > 0) {
+      const newFiles = Array.from(fileList);
+
+      setFiles((prev) => {
+        const updatedFiles = [...newFiles];
+
+        // Check for duplicates and rename if necessary
+        updatedFiles.forEach((file, index) => {
+          let fileName = file.name;
+          let counter = 1;
+
+          // Check if file name exists in previous files or already processed files
+          while (prev.some(f => f.name === fileName) ||
+            updatedFiles.slice(0, index).some(f => f.name === fileName)) {
+            const nameParts = file.name.split('.');
+            const extension = nameParts.length > 1 ? `.${nameParts.pop()}` : '';
+            const baseName = nameParts.join('.');
+            fileName = `${baseName}(${counter})${extension}`;
+            counter++;
+          }
+
+          // If name was changed, create a new File object with the new name
+          if (fileName !== file.name) {
+            const renamedFile = new File([file], fileName, { type: file.type });
+            updatedFiles[index] = renamedFile;
+          }
+        });
+
+        return [...prev, ...updatedFiles];
+      });
     }
+  };
+
+  const handleFileChange = async (event) => {
+    processFiles(event.target.files);
+    event.target.value = "";
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFiles = e.dataTransfer.files;
+    processFiles(droppedFiles);
   };
 
   const goToLine = (lineNumber) => {
@@ -174,7 +245,7 @@ const FileUpload = () => {
       );
 
       storeLintResult(response.data);
-      console.log(response.data);
+      console.log(response.data); 
 
       for (const message of response.data.lintResult.messages) {
         message.ruleId = message.ruleId?.replace(/^@typescript-eslint\//, "") || "(no rule)";
@@ -369,24 +440,11 @@ const FileUpload = () => {
     }
 
     try {
-      // const codeBlob = new Blob([updatedCode], { type: "text/plain" });
-      // const codeFile = new File([codeBlob], selectFileEditContent.name, { type: "text/plain" });
-      // const formData = new FormData();
-      // formData.append("files", codeFile);
-      // const response = await axios.post(
-      //   "http://localhost:3001/lint",
-      //   formData,
-      //   {
-      //     headers: { "Content-Type": "multipart/form-data" },
-      //   }
-      // );
-
       const newFile = {
         name: selectedFileContent.name,
         source: updatedCode
       };
 
-      // onSelectFileClick(newFile);
       handleUpload(newFile);
 
       // Highlight the applied fix in the editor
@@ -454,11 +512,14 @@ const FileUpload = () => {
 
     // Clear selected file if it's the one being removed
     if (selectedFileContent.name === fileToRemove.name) {
-      setSelectedFileContent(prev => ({ ...prev, source: "" }));
       setSelectedFileContent({});
       setSelectedLintContent(null);
       setAppliedFixes([]);
       setOriginalCodeForDiff('');
+      setSelectFileEditContent({});
+      const { editor } = monacoObjects.current;
+      const model = editor.getModel();
+      model.setValue('');
     }
   };
 
@@ -466,7 +527,14 @@ const FileUpload = () => {
     <div className="container">
       <div className="file-upload-container height-100">
         <div className="file-list">
-          <div className="button-container">
+          <div
+            className={`button-container ${isDragging ? 'dragging' : ''}`}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current.click()}
+          >
             <input
               type="file"
               multiple
@@ -474,19 +542,7 @@ const FileUpload = () => {
               style={{ display: "none" }}
               ref={fileInputRef}
             />
-            <button
-              onClick={() => fileInputRef.current.click()}
-              className="choose-file-button"
-            >
-              เลือกไฟล์
-            </button>
-            {/* <button
-              onClick={handleUpload}
-              disabled={uploading}
-              className="upload-button"
-            >
-              {uploading ? "Uploading..." : "Upload"}
-            </button> */}
+            คลิกหรือลากไฟล์มาที่นี้เพื่ออัปโหลด
           </div>
 
           <ul>
@@ -557,36 +613,26 @@ const FileUpload = () => {
 
         <div className="linting-results">
           <div className="flex items-center justify-between">
-            <h3>Linting Results: {selectedLintContent?.lintResult?.errorCount | 0}</h3>
+            <h3>ผลการตรวจสอบ: {selectedLintContent?.lintResult?.errorCount | 0}</h3>
             <div className="flex gap-2">
               {selectedLintContent && (
                 <button onClick={() => handleUpload({
                   name: selectFileEditContent.name,
                   source: selectFileEditContent.source
-                })}>
-                  Analyze
+                })}
+                  className="btn-analyze">
+                  ตรวจสอบ
                 </button>
               )}
 
               {selectedLintContent && (
-                <button onClick={() => downloadModifiedFile(selectedLintContent)}>
-                  Download Fixed File
+                <button onClick={() => downloadModifiedFile(selectedLintContent)}
+                  className="btn-download">
+                  ดาว์นโหลดไฟล์
                 </button>
               )}
             </div>
           </div>
-
-          {/* Enhanced Batch Fix Controls */}
-          {/* {selectedLintContent?.lintResult?.messages && (
-            <BatchFixControls
-              fixableCount={selectedLintContent.lintResult.messages.filter(msg => isFixAble(msg.ruleId)).length}
-              totalCount={selectedLintContent.lintResult.messages.length}
-              onBatchFix={applyBatchFix}
-              isProcessing={batchProcessing}
-              batchProgress={batchProgress}
-              disabled={false}
-            />
-          )} */}
 
           {selectedLintContent?.lintResult?.errorCount > 0 ? (
             <div className="linting-results-container">
@@ -603,25 +649,22 @@ const FileUpload = () => {
                       borderLeft: isRuleFixable ? '4px solid #4CAF50' : '4px solid #ff9800'
                     }}>
                       <div className={"lint-result-header"}>
-                        <div className={"error-toggle truncate"} >
-                          <span className="text-underline" onClick={() => goToLine(message.line)}>
+                        <div className={"error-toggle truncate"} onClick={() => toggleExpand(idx)}>
+                          <span className="text-underline" onClick={(e) => {
+                            e.stopPropagation();
+                            goToLine(message.line)
+                          }}>
                             {message.line}:{message.endColumn}
                           </span>
-                          <span onClick={() => toggleExpand(idx)}>
+                          <span >
                             {message.message}
                           </span>
-                          <FixStatusIndicator
-                            isFixable={isRuleFixable}
-                            isApplying={isApplying}
-                            fixResult={fixResult}
-                            ruleId={message.ruleId}
-                            severity={message.severity}
-                          />
                         </div>
 
                         {isRuleFixable && (
                           <button
-                            className="btn-applyfix"
+                            title="แก้ไข"
+                            className="remove-file-button"
                             onClick={() => applyFix(message)}
                             disabled={isApplying}
                             style={{
@@ -629,7 +672,7 @@ const FileUpload = () => {
                               cursor: isApplying ? 'not-allowed' : 'pointer'
                             }}
                           >
-                            {isApplying ? 'Applying...' : 'Apply Fix'}
+                            <MdBuild />
                           </button>
                         )}
                       </div>
@@ -657,7 +700,7 @@ const FileUpload = () => {
               </div>
             </div>
           ) : (
-            <p>No linting errors found.</p>
+            <p>ไม่พบจุดข้อบกพร่อง</p>
           )}
         </div>
       </div>
