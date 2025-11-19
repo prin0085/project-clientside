@@ -66,6 +66,10 @@
         "message": "การกำหนดค่าให้กับตัวแปรที่ประกาศด้วย const อาจจะทำให้เกิด runtime error ได้",
         "solution": {
             "1": "ประกาศตัวแปรด้วย var หรือ let แทน"
+        },
+        "example": {
+            "error": "const MAX_SIZE = 100;\nMAX_SIZE = 200;",
+            "fixed": "let MAX_SIZE = 100;\nMAX_SIZE = 200;"
         }
     },
     {
@@ -76,19 +80,31 @@
         "solution": {
             "1": "หากไม่ใช้แล้วควรลบตัวแปร หรือ ฟังก์ชันนั้นออก",
             "2": "Comment ตัวแปร หรือ ฟังก์ชันนั้นไว้ เผื่อใช้ในภายหลังแล้วอธิบายกำกับไว้"
+        },
+        "example": {
+            "error": "const unusedVar = 10;\nconst name = 'John';\nconsole.log(name);",
+            "fixed": "const name = 'John';\nconsole.log(name);"
         }
     },
     {
         "ruleId": "no-constant-condition",
         "title": "ไม่สามารถใช้ค่าคงที่เป็นเงื่อนไขได้",
         "description": "ไม่ควรใช้ค่าที่เป็นค่าคงที่ในการตั้งเป็นตัวแปรสำหรับ if while for เป็นต้น",
-        "message": "การนำค่าที่เป็นคงที่มาเป็นเงื่อนไขสำหรับ if while for จะก่อให้เกิดเงื่อนไขนั้น ไม่เกิดขึ้นหรือเกิดขึ้นตลอดหากเงื่อนไขเหล่านี้อยู่กับ while หรือ for อาจจะก่อให้เกิด loop ไม่รู้จบได้"
+        "message": "การนำค่าที่เป็นคงที่มาเป็นเงื่อนไขสำหรับ if while for จะก่อให้เกิดเงื่อนไขนั้น ไม่เกิดขึ้นหรือเกิดขึ้นตลอดหากเงื่อนไขเหล่านี้อยู่กับ while หรือ for อาจจะก่อให้เกิด loop ไม่รู้จบได้",
+        "example": {
+            "error": "while (true) {\n  dosometing(); \n}",
+            "fixed": "while (เปลี่ยนค่านี้ให้ไม่ใช้ true เสมอ) {\n  dosometing(); \n}"
+        }
     },
     {
         "ruleId": "no-undef",
         "title": "การประกาศตัวแปรหรือฟังก์ชันไม่ถูกต้อง",
         "description": "ไม่สามารถใช้ตัวแปรหรือฟังก์ชันที่ยังไม่ได้ประกาศไว้ได้ ควรประกาศตัวแปรขึ้นต้นด้วย const , let หรือ var",
-        "message": "หรือหากตัวแปรนี้เป็นตัวแปรหรือฟังก์ชันแบบ Global(ตัวแปรใช้ข้ามไฟล์ ควรระบุหรือสื่อสารระหว่างทีม Programmer ให้เข้าใจตรงกัน)"
+        "message": "หรือหากตัวแปรนี้เป็นตัวแปรหรือฟังก์ชันแบบ Global(ตัวแปรใช้ข้ามไฟล์ ควรระบุหรือสื่อสารระหว่างทีม Programmer ให้เข้าใจตรงกัน)",
+        "example": {
+            "error": "function greet() {\n  message = 'Hello';\n  console.log(message);\n}",
+            "fixed": "function greet() {\n  const message = 'Hello';\n  console.log(message);\n}"
+        }
     },
     {
         "ruleId": "no-constant-binary-expression",
@@ -106,7 +122,11 @@
         "ruleId": "no-debugger",
         "title": "ห้ามใช้ debugger",
         "description": "ห้ามใช้คำสั่ง debugger ในโค้ด",
-        "message": "พบการใช้ debugger หากไม่มีการใช้งานแล้วให้ ลบหรือคอมเมนต์ออก"
+        "message": "พบการใช้ debugger หากไม่มีการใช้งานแล้วให้ ลบหรือคอมเมนต์ออก",
+        "example": {
+            "error": "function calculateSum(a, b) {\n  debugger;\n  return a + b;\n}",
+            "fixed": "function calculateSum(a, b) {\n  return a + b;\n}"
+        }
     },
     {
         "ruleId": "no-dupe-args",
@@ -154,7 +174,11 @@
         "ruleId": "no-extra-semi",
         "title": "semicolon เกินจำเป็น",
         "description": "ห้ามใช้ semicolon ที่เกินจำเป็น",
-        "message": "พบ semicolon ที่เกินจำเป็น"
+        "message": "พบ semicolon ที่เกินจำเป็น",
+        "example": {
+            "error": "const x = 5;;\nfunction test() {\n  return true;;\n};",
+            "fixed": "const x = 5;\nfunction test() {\n  return true;\n}"
+        }
     },
     {
         "ruleId": "no-func-assign",
@@ -226,7 +250,7 @@
         "ruleId": "complexity",
         "title": "บังคับการใช้ซิโคลเมติกคอมเพล็กซิตี้สูงสุด",
         "description": "กฎนี้บังคับการใช้ซิโคลเมติกคอมเพล็กซิตี้สูงสุดที่อนุญาตในโปรแกรม ซิโคลเมติกคอมเพล็กซิตี้มีหน้าที่วัดจำนวนเส้นทางที่อิสระต่อกันผ่านโค้ดซอร์สของโปรแกรม",
-        "message": "ความซับซ้อนของฟังก์ชันหรือเมทอดเกินเกินขอบเขตที่อนุญาต (default คือ 20 )"
+        "message": "ความซับซ้อนของฟังก์ชันหรือเมทอดเกินเกินขอบเขตที่อนุญาต (default คือ 4)"
     },
     {
         "ruleId": "consistent-return",
@@ -244,7 +268,11 @@
         "ruleId": "curly",
         "title": "บังคับให้ใช้เครื่องหมายวงเล็บปีกกาในทุกคำสั่งควบคุม",
         "description": "บังคับให้ใช้เครื่องหมายวงเล็บปีกกากับบล็อกคำสั่งในทุกคำสั่งควบคุมเพื่อเพิ่มความชัดเจนของโค้ดและลดข้อผิดพลาด",
-        "message": "ใช้เครื่องหมายวงเล็บปีกกาสำหรับบล็อกคำสั่งในทุกคำสั่งควบคุม"
+        "message": "ใช้เครื่องหมายวงเล็บปีกกาสำหรับบล็อกคำสั่งในทุกคำสั่งควบคุม",
+        "example": {
+            "error": "if (condition)\n  doSomething();\n\nif (x > 5)\n  console.log('Greater than 5');",
+            "fixed": "if (condition) {\n  doSomething();\n}\n\nif (x > 5) {\n  console.log('Greater than 5');\n}"
+        }
     },
     {
         "ruleId": "default-case",
@@ -274,7 +302,11 @@
         "ruleId": "eqeqeq",
         "title": "ควรให้ใช้การเปรียบเทียบแบบเข้มงวด (=== และ !==)",
         "description": "ควรใช้ตัวดำเนินการเปรียบเทียบแบบเข้มงวด ('===' และ '!==') แทนการเปรียบเทียบแบบหลวม ('==' และ '!=') เพื่อลดข้อผิดพลาดที่เกิดจากการเปรียบเทียบค่าต่างประเภทกัน",
-        "message": "การเปรียบเทียบแบบเข้มงวดคือ ทั้งประเภท และ ค่า ทั้งสองฝั่งของตัวเปรียบเทียบต้องเหมือนกัน เช่น 8 === 8 => true, '8' === 8 => false เป็นต้น"
+        "message": "การเปรียบเทียบแบบเข้มงวดคือ ทั้งประเภท และ ค่า ทั้งสองฝั่งของตัวเปรียบเทียบต้องเหมือนกัน เช่น 8 === 8 => true, '8' === 8 => false เป็นต้น",
+        "example": {
+            "error": "if (x == 5) {\n  console.log('equal');\n}\nif (y != null) {\n  console.log('not null');\n}",
+            "fixed": "if (x === 5) {\n  console.log('equal');\n}\nif (y !== null) {\n  console.log('not null');\n}"
+        }
     },
     {
         "ruleId": "func-name-matching",
@@ -382,7 +414,11 @@
         "ruleId": "no-alert",
         "title": "ห้ามใช้คำสั่ง alert, confirm, และ prompt",
         "description": "ห้ามใช้คำสั่ง 'alert', 'confirm', และ 'prompt' เนื่องจากอาจทำให้ประสบการณ์ผู้ใช้ไม่ดี และไม่เหมาะสมในโค้ดที่ใช้ในโปรดักชัน ควรใช้วิธีการแสดงผลอื่นๆ เช่น การแสดงข้อความบน UI แทน",
-        "message": "ห้ามใช้ 'alert', 'confirm', และ 'prompt' ในโค้ด"
+        "message": "ห้ามใช้ 'alert', 'confirm', และ 'prompt' ในโค้ด",
+        "example": {
+            "error": "function showMessage(msg) {\n  alert(msg);\n}\n\nconst confirmed = confirm('Are you sure?');",
+            "fixed": "function showMessage(msg) {\n  // Use a modal or toast notification instead\n  showNotification(msg);\n}\n\nconst confirmed = showConfirmDialog('Are you sure?');"
+        }
     },
     {
         "ruleId": "no-array-constructor",
@@ -418,7 +454,11 @@
         "ruleId": "no-console",
         "title": "ห้ามใช้ 'console'",
         "description": "ห้ามใช้คำสั่ง 'console.log()', 'console.error()', 'console.warn()' และคำสั่ง 'console' อื่นๆ เนื่องจากมันไม่เหมาะสมในโค้ดที่ใช้ในโปรดักชัน เพราะมันอาจทำให้ข้อมูลส่วนตัวหรือข้อมูลที่สำคัญหลุดออกไป ควรใช้เครื่องมือที่เหมาะสมในการดีบักหรือจัดการข้อผิดพลาดแทน",
-        "message": "ห้ามใช้ 'console' ในโค้ด"
+        "message": "ห้ามใช้ 'console' ในโค้ด",
+        "example": {
+            "error": "function calculateTotal(price, tax) {\n  console.log('Calculating total...');\n  const total = price + tax;\n  console.log('Total:', total);\n  return total;\n}",
+            "fixed": "function calculateTotal(price, tax) {\n  const total = price + tax;\n  return total;\n}"
+        }
     },
     {
         "ruleId": "no-continue",
@@ -448,7 +488,11 @@
         "ruleId": "no-empty",
         "title": "พบ statements ไม่มีการกำหนดการทำงาน",
         "description": "ห้ามใช้บล็อกโค้ดเปล่า (empty block) เพราะอาจทำให้โค้ดดูสับสนและยากต่อการเข้าใจ ควรลบออกหรือเพิ่มโค้ดในบล็อกนั้น",
-        "message": "ไม่ควรกำหนด statement เปล่า"
+        "message": "ไม่ควรกำหนด statement เปล่า",
+        "example": {
+            "error": "if (condition) {\n  // empty block\n}\ntry {\n  doSomething();\n} catch (e) {\n  // empty catch\n}",
+            "fixed": "if (condition) {\n  console.log('Condition is true');\n}\ntry {\n  doSomething();\n} catch (e) {\n  console.error('Error:', e);\n}"
+        }
     },
     {
         "ruleId": "no-empty-function",
@@ -688,19 +732,31 @@
         "ruleId": "no-plusplus",
         "title": "ไม่ควรใช้ '++' หรือ '--'",
         "description": "ควรหลีกเลี่ยงการใช้ '++' หรือ '--' เพราะทำให้โค้ดอ่านยาก ใช้ '+= 1' หรือ '-= 1' แทน",
-        "message": "ใช้ '+= 1' หรือ '-= 1' แทน '++' หรือ '--'"
+        "message": "ใช้ '+= 1' หรือ '-= 1' แทน '++' หรือ '--'",
+        "example": {
+            "error": "let count = 0;\ncount++;\nfor (let i = 0; i < 10; i++) {\n  console.log(i);\n}",
+            "fixed": "let count = 0;\ncount += 1;\nfor (let i = 0; i < 10; i += 1) {\n  console.log(i);\n}"
+        }
     },
     {
         "ruleId": "prefer-template",
         "title": "แนะนำให้ใช้ template literals แทนการต่อสตริง",
         "description": "แนะนำให้ใช้ template literals (backticks) แทนการใช้ตัวดำเนินการ + ในการต่อสตริง เนื่องจาก template literals ทำให้โค้ดอ่านง่ายและเข้าใจได้ดีขึ้น โดยเฉพาะเมื่อมีการแทรกตัวแปรหลายตัวในสตริง และยังช่วยลดข้อผิดพลาดจากการลืมเว้นวรรคหรือการต่อสตริงที่ซับซ้อน",
-        "message": "ควรใช้ template literals แทนการต่อสตริงด้วย +"
+        "message": "ควรใช้ template literals แทนการต่อสตริงด้วย +",
+        "example": {
+            "error": "const name = 'John';\nconst age = 30;\nconst message = 'Hello, ' + name + '! You are ' + age + ' years old.';",
+            "fixed": "const name = 'John';\nconst age = 30;\nconst message = `Hello, ${name}! You are ${age} years old.`;"
+        }
     },
     {
         "ruleId": "prefer-for-of",
         "title": "แนะนำให้ใช้ for-of loop แทน for loop แบบดั้งเดิม",
         "description": "แนะนำให้ใช้ for-of loop แทนการใช้ for loop แบบดั้งเดิมเมื่อวนลูปผ่านอาร์เรย์ เนื่องจาก for-of loop ทำให้โค้ดอ่านง่ายและเข้าใจได้ดีขึ้น ลดความซับซ้อนในการจัดการ index และลดโอกาสเกิดข้อผิดพลาดจากการใช้ index ผิด นอกจากนี้ยังทำให้โค้ดสั้นและกระชับขึ้น",
-        "message": "ควรใช้ for-of loop แทน for loop แบบดั้งเดิม"
+        "message": "ควรใช้ for-of loop แทน for loop แบบดั้งเดิม",
+        "example": {
+            "error": "const arr = [1, 2, 3, 4, 5];\nfor (let i = 0; i < arr.length; i++) {\n  console.log(arr[i]);\n}",
+            "fixed": "const arr = [1, 2, 3, 4, 5];\nfor (const item of arr) {\n  console.log(item);\n}"
+        }
     },
     {
         "ruleId": "no-proto",
@@ -784,7 +840,11 @@
         "ruleId": "no-ternary",
         "title": "ห้ามใช้ 'ternary operator' (เครื่องหมายสามทาง)",
         "description": "ห้ามใช้ 'ternary operator' ในโค้ด เนื่องจากมันอาจทำให้โค้ดยากต่อการอ่านและเข้าใจ โดยเฉพาะในกรณีที่มีเงื่อนไขซับซ้อน ควรใช้ 'if-else' แทนเพื่อเพิ่มความชัดเจนและความอ่านง่ายในโค้ด",
-        "message": "ห้ามใช้ 'ternary operator' ในโค้ด"
+        "message": "ห้ามใช้ 'ternary operator' ในโค้ด",
+        "example": {
+            "error": "const result = condition ? 'yes' : 'no';\n\nconst getStatus = (isActive) => isActive ? 'Active' : 'Inactive';",
+            "fixed": "let result;\nif (condition) {\n  result = 'yes';\n} else {\n  result = 'no';\n}\n\nconst getStatus = (isActive) => {\n  if (isActive) {\n    return 'Active';\n  } else {\n    return 'Inactive';\n  }\n};"
+        }
     },
     {
         "ruleId": "no-throw-literal",
@@ -880,7 +940,11 @@
         "ruleId": "no-var",
         "title": "ห้ามใช้ 'var'",
         "description": "ห้ามใช้ 'var' เพื่อประกาศตัวแปรในโค้ด เนื่องจาก 'var' อาจทำให้เกิดการกำหนดค่าใหม่หรือการใช้งานที่ไม่คาดคิดเนื่องจากการทำงานในขอบเขตที่ไม่คาดคิด ควรใช้ 'let' หรือ 'const' แทนการใช้ 'var' เพื่อเพิ่มความชัดเจนและความปลอดภัยในโค้ด",
-        "message": "ห้ามใช้ 'var' เพื่อประกาศตัวแปร"
+        "message": "ห้ามใช้ 'var' เพื่อประกาศตัวแปร",
+        "example": {
+            "error": "var count = 0;\nvar name = 'John';\nfor (var i = 0; i < 10; i++) {\n  var temp = i * 2;\n}",
+            "fixed": "let count = 0;\nconst name = 'John';\nfor (let i = 0; i < 10; i++) {\n  const temp = i * 2;\n}"
+        }
     },
     {
         "ruleId": "no-void",
@@ -922,13 +986,21 @@
         "ruleId": "prefer-arrow-callback",
         "title": "ใช้ฟังก์ชันแบบ arrow function แทนฟังก์ชันทั่วไป",
         "description": "แนะนำให้ใช้ฟังก์ชันแบบ arrow function (เช่น '() => {}') แทนการใช้ฟังก์ชันทั่วไป เพราะฟังก์ชันแบบ arrow function มีความกระชับและสั้นกว่า นอกจากนี้ยังช่วยให้การเข้าถึง 'this' ทำได้ง่ายและคาดเดาได้มากขึ้น",
-        "message": "ใช้ฟังก์ชันแบบ arrow function แทนฟังก์ชันทั่วไป"
+        "message": "ใช้ฟังก์ชันแบบ arrow function แทนฟังก์ชันทั่วไป",
+        "example": {
+            "error": "[1, 2, 3].map(function(x) {\n  return x * 2;\n});\n\nsetTimeout(function() {\n  console.log('Done');\n}, 1000);",
+            "fixed": "[1, 2, 3].map((x) => x * 2);\n\nsetTimeout(() => {\n  console.log('Done');\n}, 1000);"
+        }
     },
     {
         "ruleId": "prefer-const",
         "title": "ใช้ 'const' แทน 'let' หากตัวแปรไม่ถูกเปลี่ยนค่า",
         "description": "แนะนำให้ใช้ 'const' แทน 'let' เมื่อประกาศตัวแปรที่ไม่ถูกเปลี่ยนค่าในภายหลัง การใช้ 'const' ช่วยให้โค้ดมีความชัดเจนและปลอดภัยมากขึ้น เนื่องจากตัวแปรที่ประกาศด้วย 'const' จะไม่สามารถถูกกำหนดค่าใหม่ได้ ซึ่งช่วยลดความผิดพลาดในโค้ด",
-        "message": "ใช้ 'const' แทน 'let' หากตัวแปรไม่ถูกเปลี่ยนค่า"
+        "message": "ใช้ 'const' แทน 'let' หากตัวแปรไม่ถูกเปลี่ยนค่า",
+        "example": {
+            "error": "let PI = 3.14159;\nlet name = 'John';\nlet age = 30;\nconsole.log(PI, name, age);",
+            "fixed": "const PI = 3.14159;\nconst name = 'John';\nconst age = 30;\nconsole.log(PI, name, age);"
+        }
     },
     {
         "ruleId": "prefer-destructuring",
